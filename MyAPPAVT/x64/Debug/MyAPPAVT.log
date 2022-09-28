@@ -1,0 +1,8 @@
+﻿  lightDemo.cpp
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(200,103): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(200,70): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(200,53): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(200,20): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(202,99): warning C4305: 'argument': truncation from 'double' to 'float'
+  MyAPPAVT.vcxproj -> C:\Users\susannewulz\source\repos\MyAPPAVT\x64\Debug\MyAPPAVT.exe
+  0 File(s) copied
