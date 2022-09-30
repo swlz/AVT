@@ -1,4 +1,4 @@
-//
+ï»¿//
 // AVT: Phong Shading and Text rendered with FreeType library
 // The text rendering was based on https://learnopengl.com/In-Practice/Text-Rendering
 // This demo was built for learning purposes only.
@@ -8,7 +8,7 @@
 // The code comes with no warranties, use it at your own risk.
 // You may use it, or parts of it, wherever you want.
 // 
-// Author: João Madeiras Pereira
+// Author: Joï¿½o Madeiras Pereira
 //
 
 #include <math.h>
@@ -34,8 +34,9 @@
 
 #include "avtFreeType.h"
 
-// classes made by students
+// classes added by students
 #include "Camera.h"
+#include "Rover.h"
 
 using namespace std;
 
@@ -53,7 +54,14 @@ VSShaderLib shaderText;  //render bitmap text
 const string font_name = "fonts/arial.ttf";
 
 //Vector with meshes
-vector<struct MyMesh> myMeshes;
+vector<struct MyMesh> terrain;
+vector<struct MyMesh> static_objects;
+vector<struct MyMesh> dynamic_objects;
+Rover rover;
+vector<float> static_x_pos;
+vector<float> static_y_pos;
+vector<float> dynamic_x_pos;
+vector<float> dynamic_y_pos;
 
 //External array storage defined in AVTmathLib.cpp
 
@@ -140,7 +148,7 @@ void renderScene(void) {
 	loadIdentity(VIEW);
 	loadIdentity(MODEL);
 	// set the camera using a function similar to gluLookAt
-	lookAt(cameras[activeCamera].camPos[0], cameras[activeCamera].camPos[1], cameras[activeCamera].camPos[2], cameras[activeCamera].camTarget[0], 
+	lookAt(cameras[activeCamera].camPos[0], cameras[activeCamera].camPos[1], cameras[activeCamera].camPos[2], cameras[activeCamera].camTarget[0],
 		cameras[activeCamera].camTarget[1], cameras[activeCamera].camTarget[2], 0, 1, 0);
 
 	// use our shader
@@ -156,42 +164,172 @@ void renderScene(void) {
 
 	int objId = 0; //id of the object mesh - to be used as index of mesh: Mymeshes[objID] means the current mesh
 
-	for (int i = 0; i < 5; ++i) {
-		for (int j = 0; j < 5; ++j) {
+	for (int i = 0; i < terrain.size(); ++i) {
 
-			// send the material
-			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
-			glUniform4fv(loc, 1, myMeshes[objId].mat.ambient);
-			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
-			glUniform4fv(loc, 1, myMeshes[objId].mat.diffuse);
-			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-			glUniform4fv(loc, 1, myMeshes[objId].mat.specular);
-			loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-			glUniform1f(loc, myMeshes[objId].mat.shininess);
-			pushMatrix(MODEL);
-			if (myMeshes[objId].name != "terrain") {
-				translate(MODEL, i*3.0f, 0.0f, j*5.0f);
-			}
-			if (myMeshes[objId].name == "terrain") {
-				rotate(MODEL, -90, 1, 0, 0);
-			}
+		// send the material
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+		glUniform4fv(loc, 1, terrain[objId].mat.ambient);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+		glUniform4fv(loc, 1, terrain[objId].mat.diffuse);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+		glUniform4fv(loc, 1, terrain[objId].mat.specular);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+		glUniform1f(loc, terrain[objId].mat.shininess);
+		pushMatrix(MODEL);
+		rotate(MODEL, -90, 1, 0, 0);
 
-			// send matrices to OGL
-			computeDerivedMatrix(PROJ_VIEW_MODEL);
-			glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
-			glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
-			computeNormalMatrix3x3();
-			glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+		// send matrices to OGL
+		computeDerivedMatrix(PROJ_VIEW_MODEL);
+		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+		computeNormalMatrix3x3();
+		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
 
-			// Render mesh
-			glBindVertexArray(myMeshes[objId].vao);
+		// Render mesh
+		glBindVertexArray(terrain[objId].vao);
 
-			glDrawElements(myMeshes[objId].type, myMeshes[objId].numIndexes, GL_UNSIGNED_INT, 0);
-			glBindVertexArray(0);
+		glDrawElements(terrain[objId].type, terrain[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
 
-			popMatrix(MODEL);
-			objId++;
+		popMatrix(MODEL);
+		objId++;
+	}
+
+	objId = 0;
+	for (int i = 0; i < static_objects.size(); ++i) {
+		// send the material
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+		glUniform4fv(loc, 1, static_objects[objId].mat.ambient);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+		glUniform4fv(loc, 1, static_objects[objId].mat.diffuse);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+		glUniform4fv(loc, 1, static_objects[objId].mat.specular);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+		glUniform1f(loc, static_objects[objId].mat.shininess);
+		pushMatrix(MODEL);
+		translate(MODEL, static_x_pos[i], 0.0f, static_y_pos[i]);
+
+
+		// send matrices to OGL
+		computeDerivedMatrix(PROJ_VIEW_MODEL);
+		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+		computeNormalMatrix3x3();
+		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+		// Render mesh
+		glBindVertexArray(static_objects[objId].vao);
+
+		glDrawElements(static_objects[objId].type, static_objects[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+
+		popMatrix(MODEL);
+		objId++;
+
+	}
+
+	objId = 0;
+	for (int i = 0; i < dynamic_objects.size(); ++i) {
+		// send the material
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+		glUniform4fv(loc, 1, dynamic_objects[objId].mat.ambient);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+		glUniform4fv(loc, 1, dynamic_objects[objId].mat.diffuse);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+		glUniform4fv(loc, 1, dynamic_objects[objId].mat.specular);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+		glUniform1f(loc, dynamic_objects[objId].mat.shininess);
+		pushMatrix(MODEL);
+		// TODO: update positions
+		translate(MODEL, dynamic_x_pos[i], 0.0f, dynamic_y_pos[i]);
+
+
+		// send matrices to OGL
+		computeDerivedMatrix(PROJ_VIEW_MODEL);
+		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+		computeNormalMatrix3x3();
+		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+		// Render mesh
+		glBindVertexArray(dynamic_objects[objId].vao);
+
+		glDrawElements(dynamic_objects[objId].type, dynamic_objects[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+
+		popMatrix(MODEL);
+		objId++;
+
+	}
+
+	// send the material for rover body
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+	glUniform4fv(loc, 1, rover.body[0].mat.ambient);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+	glUniform4fv(loc, 1, rover.body[0].mat.diffuse);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+	glUniform4fv(loc, 1, rover.body[0].mat.specular);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+	glUniform1f(loc, rover.body[0].mat.shininess);
+	pushMatrix(MODEL);
+	translate(MODEL, rover.position_body[0], rover.position_body[1], rover.position_body[2]);
+
+	// send matrices to OGL
+	computeDerivedMatrix(PROJ_VIEW_MODEL);
+	glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+	glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+	computeNormalMatrix3x3();
+	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+	// Render mesh
+	glBindVertexArray(rover.body[0].vao);
+	glDrawElements(rover.body[0].type, rover.body[0].numIndexes, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+	popMatrix(MODEL);
+
+    // rover wheels
+	objId = 0; 
+	for (int i = 0; i < rover.wheels.size(); ++i) {
+
+		// send the material
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+		glUniform4fv(loc, 1, rover.wheels[objId].mat.ambient);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+		glUniform4fv(loc, 1, rover.wheels[objId].mat.diffuse);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+		glUniform4fv(loc, 1, rover.wheels[objId].mat.specular);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+		glUniform1f(loc, rover.wheels[objId].mat.shininess);
+		pushMatrix(MODEL);
+		if (i == 0) {
+			translate(MODEL, rover.position_wheel1[0], rover.position_wheel1[1], rover.position_wheel1[2]);
 		}
+		if (i == 1) {
+			translate(MODEL, rover.position_wheel2[0], rover.position_wheel2[1], rover.position_wheel2[2]);
+		}
+		if (i == 2) {
+			translate(MODEL, rover.position_wheel3[0], rover.position_wheel3[1], rover.position_wheel3[2]);
+		}
+		if (i == 3) {
+			translate(MODEL, rover.position_wheel4[0], rover.position_wheel4[1], rover.position_wheel4[2]);
+		}
+		rotate(MODEL, -90, 1, 0, 0);
+		rotate(MODEL, rover.direction_angle, 0, 0, 1);
+		// send matrices to OGL
+		computeDerivedMatrix(PROJ_VIEW_MODEL);
+		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+		computeNormalMatrix3x3();
+		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+		// Render mesh
+		glBindVertexArray(rover.wheels[objId].vao);
+
+		glDrawElements(rover.wheels[objId].type, rover.wheels[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+
+		popMatrix(MODEL);
+		objId++;
 	}
 
 	//Render text (bitmap fonts) in screen coordinates. So use ortoghonal projection with viewport coordinates.
@@ -245,6 +383,28 @@ void processKeys(unsigned char key, int xx, int yy)
 		break;
 	case '3':
 		activeCamera = 3;
+		break;
+	case 'o':
+		rover.direction_angle -= 10.0f;
+		break;
+	case 'p':
+		rover.direction_angle += 10.0f;
+		break;
+	case 'q':
+		rover.speed += 1.0f;
+		rover.position_wheel1[2] += rover.speed * rover.direction_angle;
+		rover.position_wheel2[2] += rover.speed * rover.direction_angle;
+		rover.position_wheel3[2] += rover.speed * rover.direction_angle;
+		rover.position_wheel4[2] += rover.speed * rover.direction_angle;
+		rover.position_body[2] += rover.speed * rover.direction_angle;
+		break;
+	case 'a':
+		rover.speed -= 1.0f;
+		rover.position_wheel1[2] += rover.speed * rover.direction_angle;
+		rover.position_wheel2[2] += rover.speed * rover.direction_angle;
+		rover.position_wheel3[2] += rover.speed * rover.direction_angle;
+		rover.position_wheel4[2] += rover.speed * rover.direction_angle;
+		rover.position_body[2] += rover.speed * rover.direction_angle;
 		break;
 
 	case 27:
@@ -436,18 +596,7 @@ void init()
 	float shininess = 100.0f;
 	int texcount = 0;
 
-	// // create geometry and VAO of the pawn
-	// amesh = createPawn();
-	// memcpy(amesh.mat.ambient, amb, 4 * sizeof(float));
-	// memcpy(amesh.mat.diffuse, diff, 4 * sizeof(float));
-	// memcpy(amesh.mat.specular, spec, 4 * sizeof(float));
-	// memcpy(amesh.mat.emissive, emissive, 4 * sizeof(float));
-	// amesh.mat.shininess = shininess;
-	// amesh.mat.texCount = texcount;
-	// myMeshes.push_back(amesh);
 
-
-	
 	// create geometry and VAO of quad
 	amesh = createQuad(40.0f, 40.0f);
 	float diff_terrain[] = { 0.8f, 0.6f, 0.4f, 1.0f };
@@ -457,48 +606,54 @@ void init()
 	memcpy(amesh.mat.emissive, emissive, 4 * sizeof(float));
 	amesh.mat.shininess = shininess;
 	amesh.mat.texCount = texcount;
-	amesh.name = "terrain";
-	myMeshes.push_back(amesh);
-	
-	
-	
+	terrain.push_back(amesh);
 
-	// // create geometry and VAO of the sphere
-	// amesh = createSphere(1.0f, 20);
-	// memcpy(amesh.mat.ambient, amb, 4 * sizeof(float));
-	// memcpy(amesh.mat.diffuse, diff, 4 * sizeof(float));
-	// memcpy(amesh.mat.specular, spec, 4 * sizeof(float));
-	// memcpy(amesh.mat.emissive, emissive, 4 * sizeof(float));
-	// amesh.mat.shininess = shininess;
-	// amesh.mat.texCount = texcount;
-	// myMeshes.push_back(amesh);
 
-	float amb1[] = { 0.3f, 0.0f, 0.0f, 1.0f };
-	float diff1[] = { 0.8f, 0.1f, 0.1f, 1.0f };
-	float spec1[] = { 0.9f, 0.9f, 0.9f, 1.0f };
-	shininess = 500.0;
-
-	// create geometry and VAO of the cylinder
-	amesh = createCylinder(1.5f, 0.5f, 20);
-	memcpy(amesh.mat.ambient, amb1, 4 * sizeof(float));
-	memcpy(amesh.mat.diffuse, diff1, 4 * sizeof(float));
-	memcpy(amesh.mat.specular, spec1, 4 * sizeof(float));
-	memcpy(amesh.mat.emissive, emissive, 4 * sizeof(float));
-	amesh.mat.shininess = shininess;
-	amesh.mat.texCount = texcount;
-	myMeshes.push_back(amesh);
+	float amb_cone[] = { 0.4f, 0.15f, 0.1f, 1.0f };
+	float diff_cone[] = { 0.8f, 0.6f, 0.4f, 1.0f };
+	float spec_cone[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+	float emissiv_cone[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 	// // create geometry and VAO of the 
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 10; i++) {
 		amesh = createCone(1.5f, 0.5f, 20);
-		memcpy(amesh.mat.ambient, amb, 4 * sizeof(float));
-		memcpy(amesh.mat.diffuse, diff, 4 * sizeof(float));
-		memcpy(amesh.mat.specular, spec, 4 * sizeof(float));
-		memcpy(amesh.mat.emissive, emissive, 4 * sizeof(float));
+		memcpy(amesh.mat.ambient, amb_cone, 4 * sizeof(float));
+		memcpy(amesh.mat.diffuse, diff_cone, 4 * sizeof(float));
+		memcpy(amesh.mat.specular, spec_cone, 4 * sizeof(float));
+		memcpy(amesh.mat.emissive, emissiv_cone, 4 * sizeof(float));
 		amesh.mat.shininess = shininess;
 		amesh.mat.texCount = texcount;
-		amesh.name = "cone_" + std::to_string(i);
-		myMeshes.push_back(amesh);
+		static_objects.push_back(amesh);
+	}
+
+// create rover
+	float amb_rover[] = { 0.2f, 0.1f, 0.1f, 1.0f };
+	float diff_rover[] = { 0.3f, 0.3f, 0.2f, 1.0f };
+	float spec_rover[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+	float emissive_rover[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	amesh = createCube();
+	memcpy(amesh.mat.ambient, amb_rover, 4 * sizeof(float));
+	memcpy(amesh.mat.diffuse, diff_rover, 4 * sizeof(float));
+	memcpy(amesh.mat.specular, spec_rover, 4 * sizeof(float));
+	memcpy(amesh.mat.emissive, emissive_rover, 4 * sizeof(float));
+	amesh.mat.shininess = shininess;
+	amesh.mat.texCount = texcount;
+	rover.body.push_back(amesh);
+
+	float innerRadius = 0.05f;
+	float outerRadius = 0.5f;
+	int rings = 20;
+	int sides = 5;
+	for (int i = 1; i < 5; i++) {
+		amesh = createTorus(innerRadius, outerRadius, rings, sides);
+		memcpy(amesh.mat.ambient, amb_rover, 4 * sizeof(float));
+		memcpy(amesh.mat.diffuse, diff_rover, 4 * sizeof(float));
+		memcpy(amesh.mat.specular, spec_rover, 4 * sizeof(float));
+		memcpy(amesh.mat.emissive, emissive_rover, 4 * sizeof(float));
+		amesh.mat.shininess = shininess;
+		amesh.mat.texCount = texcount;
+		rover.wheels.push_back(amesh);
 	}
 
 	// some GL settings
@@ -521,14 +676,21 @@ int main(int argc, char** argv) {
 	// init cameras
 	// top
 	cameras[0].camPos[1] = 20;
+
 	// top ortho
 	cameras[1].camPos[1] = 20;
 	cameras[1].type = 1;
-	// TODO: follow rover
-	// cameras[2].camPos[0] = (-rover.direction * dist).x;
-	// 	cameras[2].camPos[0] = ((-rover.direction * dist) + (0, height, 0)).y;
-	// 	cameras[2].camPos[2] = (-rover.direction * dist).z;
-	// 	cameras[2].camTarget = rover.position;
+
+	// camera follows rover
+	float dist[3] = { cameras[2].camPos[0] - rover.position_body[0], cameras[2].camPos[1] - rover.position_body[1], cameras[2].camPos[2] - rover.position_body[2] };
+	float height = cameras[2].camPos[1];
+	cameras[2].camPos[0] = -rover.direction_angle * dist[0];
+	cameras[2].camPos[1] = (-rover.direction_angle * dist[1]) + (0, height, 0);
+	cameras[2].camPos[2] = -rover.direction_angle * dist[2];
+	cameras[2].camTarget[0] = rover.position_body[0];
+	cameras[2].camTarget[1] = rover.position_body[1];
+	cameras[2].camTarget[2] = rover.position_body[2];
+
 
 	//  GLUT initialization
 	glutInit(&argc, argv);
@@ -575,11 +737,19 @@ int main(int argc, char** argv) {
 
 	init();
 
+	float max = 20.0f;
+	float min = -20.0f;
+	int range = max - min + 1;
+	for (int i = 0; i < static_objects.size(); i++) {
+		//TODO check case 0,0
+		static_x_pos.push_back(rand() % range + min);
+		static_y_pos.push_back(rand() % range + min);
+	}
+
 	//  GLUT main loop
 	glutMainLoop();
 
 	return(0);
 }
-
 
 
