@@ -273,6 +273,7 @@ void renderScene(void) {
 	glUniform1f(loc, rover.body[0].mat.shininess);
 	pushMatrix(MODEL);
 	translate(MODEL, rover.position_body[0], rover.position_body[1], rover.position_body[2]);
+	rotate(MODEL, rover.direction_angle, 0, 1, 0);
 
 	// send matrices to OGL
 	computeDerivedMatrix(PROJ_VIEW_MODEL);
@@ -301,6 +302,7 @@ void renderScene(void) {
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 		glUniform1f(loc, rover.wheels[objId].mat.shininess);
 		pushMatrix(MODEL);
+		rotate(MODEL, rover.direction_angle, 0, 1, 0);
 		if (i == 0) {
 			translate(MODEL, rover.position_wheel1[0], rover.position_wheel1[1], rover.position_wheel1[2]);
 		}
@@ -314,7 +316,6 @@ void renderScene(void) {
 			translate(MODEL, rover.position_wheel4[0], rover.position_wheel4[1], rover.position_wheel4[2]);
 		}
 		rotate(MODEL, -90, 1, 0, 0);
-		rotate(MODEL, rover.direction_angle, 0, 0, 1);
 		// send matrices to OGL
 		computeDerivedMatrix(PROJ_VIEW_MODEL);
 		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
@@ -392,19 +393,19 @@ void processKeys(unsigned char key, int xx, int yy)
 		break;
 	case 'q':
 		rover.speed += 1.0f;
-		rover.position_wheel1[2] += rover.speed * rover.direction_angle;
-		rover.position_wheel2[2] += rover.speed * rover.direction_angle;
-		rover.position_wheel3[2] += rover.speed * rover.direction_angle;
-		rover.position_wheel4[2] += rover.speed * rover.direction_angle;
-		rover.position_body[2] += rover.speed * rover.direction_angle;
+		rover.position_wheel1[0] += rover.speed * 2;
+		rover.position_wheel2[0] += rover.speed * 2;
+		rover.position_wheel3[0] += rover.speed * 2;
+		rover.position_wheel4[0] += rover.speed * 2;
+		rover.position_body[0] += rover.speed * 2;
 		break;
 	case 'a':
 		rover.speed -= 1.0f;
-		rover.position_wheel1[2] += rover.speed * rover.direction_angle;
-		rover.position_wheel2[2] += rover.speed * rover.direction_angle;
-		rover.position_wheel3[2] += rover.speed * rover.direction_angle;
-		rover.position_wheel4[2] += rover.speed * rover.direction_angle;
-		rover.position_body[2] += rover.speed * rover.direction_angle;
+		rover.position_wheel1[0] += rover.speed * rover.direction_angle;
+		rover.position_wheel2[0] += rover.speed * rover.direction_angle;
+		rover.position_wheel3[0] += rover.speed * rover.direction_angle;
+		rover.position_wheel4[0] += rover.speed * rover.direction_angle;
+		rover.position_body[0] += rover.speed * rover.direction_angle;
 		break;
 
 	case 27:
