@@ -37,6 +37,8 @@
 // classes added by students
 #include "Camera.h"
 #include "Rover.h"
+#include "Rocks.h"
+#include <time.h>
 
 using namespace std;
 
@@ -58,10 +60,19 @@ vector<struct MyMesh> terrain;
 vector<struct MyMesh> static_objects;
 vector<struct MyMesh> dynamic_objects;
 Rover rover;
+vector<Rocks> rocks;
 vector<float> static_x_pos;
 vector<float> static_y_pos;
 vector<float> dynamic_x_pos;
 vector<float> dynamic_y_pos;
+float terrain_x = 40.0f;
+float terrain_y = 40.0f;
+float max_terrain = 19.0f;
+float min_terrain = -19.0f;
+int range = max_terrain - min_terrain + 1;
+float max_angle = 180.0f;
+float min_angle = -180.0f;
+int range_angle = max_angle - min_angle + 1;
 
 //External array storage defined in AVTmathLib.cpp
 
@@ -92,8 +103,81 @@ float r = 10.0f;
 // Frame counting and FPS computation
 long myTime, timebase = 0, frame = 0;
 char s[32];
-float lightPos[4] = { 4.0f, 6.0f, 2.0f, 1.0f };
+//float lightPos[4] = { 4.0f, 6.0f, 2.0f, 1.0f };
+#define NUM_POINT_LIGHTS 6
+#define NUM_SPOT_LIGHTS 2
 
+float directionalLightPos[4]{ 1.0f, 1000.0f, 1.0f, 0.0f };
+float pointLightPos[NUM_POINT_LIGHTS][4] = { {0,0,0,0},
+				{0,0,0,0},
+					{0,0,0,0},
+					{0,0,0,0},
+					{0,0,0,0},
+					{0,0,0,0},
+};
+bool pointLightOn = false;
+float spotLightPos[NUM_SPOT_LIGHTS][4] = { {-35.0f, 4.0f, -35.0f, 1.0f},
+{0.7f,  0.2f,  2.0f} 
+};
+
+// Time Stuff
+int prev_time = 0;
+
+
+void animate(int value) {
+	int elapsed_time = glutGet(GLUT_ELAPSED_TIME);
+	int DELTA_T = elapsed_time - prev_time;
+	prev_time = elapsed_time;
+	//std::ostringstream oss;
+	//oss << "DELTA T" << ": " << DELTA_T;
+	//std::string s = oss.str();
+	//glutSetWindow(WindowHandle);
+	//glutSetWindowTitle(s.c_str());
+
+	rover.direction[0] = cos(rover.angle) * 0 - sin(rover.angle) * 1;
+	rover.direction[2] = sin(rover.angle) * 0 - cos(rover.angle) * 1;
+
+	rover.position[0][0] += rover.direction[0] * rover.speed * DELTA_T;
+	rover.position[1][0] += rover.direction[0] * rover.speed * DELTA_T;
+	rover.position[2][0] += rover.direction[0] * rover.speed * DELTA_T;
+	rover.position[3][0] += rover.direction[0] * rover.speed * DELTA_T;
+	rover.position[4][0] += rover.direction[0] * rover.speed * DELTA_T;
+
+	rover.position[0][2] += rover.direction[2] * rover.speed * DELTA_T;
+	rover.position[1][2] += rover.direction[2] * rover.speed * DELTA_T;
+	rover.position[2][2] += rover.direction[2] * rover.speed * DELTA_T;
+	rover.position[3][2] += rover.direction[2] * rover.speed * DELTA_T;
+	rover.position[4][2] += rover.direction[2] * rover.speed * DELTA_T;
+
+	glutPostRedisplay();
+	glutTimerFunc(1000 * DELTA_T, animate, 0);
+}
+
+void rolling_rocks_animate(int value) {
+	int elapsed_time = glutGet(GLUT_ELAPSED_TIME);
+	int DELTA_T = elapsed_time - prev_time;
+	prev_time = elapsed_time;
+
+	for (int i = 0; i < rocks.size(); i++) {
+		if (DELTA_T >= 30) {
+			rocks[i].speed += 0.001;
+		}
+		rocks[i].direction[0] = cos(rocks[i].angle) * 0 - sin(rocks[i].angle) * 1;
+		rocks[i].direction[2] = sin(rocks[i].angle) * 0 - cos(rocks[i].angle) * 1;
+
+		rocks[i].position[0] += rocks[i].direction[0] * rocks[i].speed * DELTA_T;
+		rocks[i].position[2] += rocks[i].direction[0] * rocks[i].speed * DELTA_T;
+		if (rocks[i].position[0] > 19.9 || rocks[i].position[0] < -19.9
+			|| rocks[i].position[2] > 19.9 || rocks[i].position[2] < -19.9) {
+			rocks[i].position[0] = (rand() % range + min_terrain) + 0.9;
+			rocks[i].position[2] = (rand() % range + min_terrain) + 0.9;
+			rocks[i].angle = (rand() % range_angle + min_angle);
+		}
+	}
+
+	glutPostRedisplay();
+	glutTimerFunc(1000 * DELTA_T, rolling_rocks_animate, 0);
+}
 
 void timer(int value)
 {
@@ -138,32 +222,78 @@ void changeSize(int w, int h) {
 // Render stufff
 //
 
-void renderScene(void) {
-
+int drawWheels(int objId) {
 	GLint loc;
+	for (int i = 1; i < 5; i++) {
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+		glUniform4fv(loc, 1, rover.body[objId].mat.ambient);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+		glUniform4fv(loc, 1, rover.body[objId].mat.diffuse);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+		glUniform4fv(loc, 1, rover.body[objId].mat.specular);
+		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+		glUniform1f(loc, rover.body[objId].mat.shininess);
 
-	FrameCount++;
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	// load identity matrices
-	loadIdentity(VIEW);
-	loadIdentity(MODEL);
-	// set the camera using a function similar to gluLookAt
-	lookAt(cameras[activeCamera].camPos[0], cameras[activeCamera].camPos[1], cameras[activeCamera].camPos[2], cameras[activeCamera].camTarget[0],
-		cameras[activeCamera].camTarget[1], cameras[activeCamera].camTarget[2], 0, 1, 0);
+		pushMatrix(MODEL);
+		translate(MODEL, rover.position[i][0], rover.position[i][1], rover.position[i][2]);
 
-	// use our shader
+		rotate(MODEL, -90, 1, 0, 0);
+		rotate(MODEL, 90, 0, 0, 1);
 
-	glUseProgram(shader.getProgramIndex());
+		computeDerivedMatrix(PROJ_VIEW_MODEL);
+		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+		computeNormalMatrix3x3();
+		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
 
-	//send the light position in eye coordinates
-	//glUniform4fv(lPos_uniformId, 1, lightPos); //efeito capacete do mineiro, ou seja lighPos foi definido em eye coord 
+		// Render mesh
+		glBindVertexArray(rover.body[objId].vao);
 
-	float res[4];
-	multMatrixPoint(VIEW, lightPos, res);   //lightPos definido em World Coord so is converted to eye space
-	glUniform4fv(lPos_uniformId, 1, res);
+		glDrawElements(rover.body[objId].type, rover.body[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+		popMatrix(MODEL);
+		objId++;
+	}
+	
+	return objId;
+}
 
-	int objId = 0; //id of the object mesh - to be used as index of mesh: Mymeshes[objID] means the current mesh
+int drawBody(int objId) {
+	GLint loc;
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+	glUniform4fv(loc, 1, rover.body[objId].mat.ambient);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+	glUniform4fv(loc, 1, rover.body[objId].mat.diffuse);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+	glUniform4fv(loc, 1, rover.body[objId].mat.specular);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+	glUniform1f(loc, rover.body[objId].mat.shininess);
 
+	pushMatrix(MODEL);
+	translate(MODEL, rover.position[0][0], rover.position[0][1], rover.position[0][2]);
+	//rotate(MODEL, (-rover.angle * 180) / (3.14), 0, 1, 0);
+	//translate(MODEL, -0.5, -0.5, -0.5);
+	
+
+	computeDerivedMatrix(PROJ_VIEW_MODEL);
+	glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+	glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+	computeNormalMatrix3x3();
+	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+
+	// Render mesh
+	glBindVertexArray(rover.body[objId].vao);
+
+	glDrawElements(rover.body[objId].type, rover.body[objId].numIndexes, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+	popMatrix(MODEL);
+	objId++;
+
+	return objId;
+}
+
+int drawTerrain(int objId) {
+	GLint loc;
 	for (int i = 0; i < terrain.size(); ++i) {
 
 		// send the material
@@ -194,8 +324,11 @@ void renderScene(void) {
 		popMatrix(MODEL);
 		objId++;
 	}
+	return objId;
+}
 
-	objId = 0;
+int drawStaticObject(int objId) {
+	GLint loc;
 	for (int i = 0; i < static_objects.size(); ++i) {
 		// send the material
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
@@ -227,22 +360,24 @@ void renderScene(void) {
 		objId++;
 
 	}
+	return objId;
+}
 
-	objId = 0;
-	for (int i = 0; i < dynamic_objects.size(); ++i) {
+int drawRocks(int objId) {
+	GLint loc;
+	for (int i = 0; i < rocks.size(); ++i) {
 		// send the material
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
-		glUniform4fv(loc, 1, dynamic_objects[objId].mat.ambient);
+		glUniform4fv(loc, 1, rocks[i].amesh[0].mat.ambient);
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
-		glUniform4fv(loc, 1, dynamic_objects[objId].mat.diffuse);
+		glUniform4fv(loc, 1, rocks[i].amesh[0].mat.diffuse);
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-		glUniform4fv(loc, 1, dynamic_objects[objId].mat.specular);
+		glUniform4fv(loc, 1, rocks[i].amesh[0].mat.specular);
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-		glUniform1f(loc, dynamic_objects[objId].mat.shininess);
+		glUniform1f(loc, rocks[i].amesh[0].mat.shininess);
 		pushMatrix(MODEL);
 		// TODO: update positions
-		translate(MODEL, dynamic_x_pos[i], 0.0f, dynamic_y_pos[i]);
-
+		translate(MODEL, rocks[i].position[0], rocks[i].position[1], rocks[i].position[2]);
 
 		// send matrices to OGL
 		computeDerivedMatrix(PROJ_VIEW_MODEL);
@@ -252,70 +387,115 @@ void renderScene(void) {
 		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
 
 		// Render mesh
-		glBindVertexArray(dynamic_objects[objId].vao);
+		glBindVertexArray(rocks[i].amesh[0].vao);
 
-		glDrawElements(dynamic_objects[objId].type, dynamic_objects[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glDrawElements(rocks[i].amesh[0].type, rocks[i].amesh[0].numIndexes, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		popMatrix(MODEL);
 		objId++;
 
 	}
+	return objId;
+}
 
-	// send the material for rover body
-	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
-	glUniform4fv(loc, 1, rover.body[0].mat.ambient);
-	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
-	glUniform4fv(loc, 1, rover.body[0].mat.diffuse);
-	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-	glUniform4fv(loc, 1, rover.body[0].mat.specular);
-	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-	glUniform1f(loc, rover.body[0].mat.shininess);
+
+void renderScene(void) {
+
+	GLint loc;
+
+	FrameCount++;
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// load identity matrices
+	loadIdentity(VIEW);
+	loadIdentity(MODEL);
+	// set the camera using a function similar to gluLookAt
+	lookAt(cameras[activeCamera].camPos[0] + 0.01, cameras[activeCamera].camPos[1], cameras[activeCamera].camPos[2], cameras[activeCamera].camTarget[0],
+		cameras[activeCamera].camTarget[1], cameras[activeCamera].camTarget[2], 0, 1, 0);
+
+	// use our shader
+
+	glUseProgram(shader.getProgramIndex());
+
+	//send the light position in eye coordinates
+	//glUniform4fv(lPos_uniformId, 1, lightPos); //efeito capacete do mineiro, ou seja lighPos foi definido em eye coord 
+
+	float res[4];
+	//multMatrixPoint(VIEW, lightPos, res);   //lightPos definido em World Coord so is converted to eye space
+	multMatrixPoint(VIEW, pointLightPos[0], res);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[0].position");
+	glUniform4fv(loc, 1, res);
+	glUniform4fv(lPos_uniformId, 1, res);
+	multMatrixPoint(VIEW, pointLightPos[1], res);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[1].position");
+	glUniform4fv(loc, 1, res);
+	glUniform4fv(lPos_uniformId, 1, res);
+	multMatrixPoint(VIEW, pointLightPos[2], res);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[2].position");
+	glUniform4fv(loc, 1, res);
+	glUniform4fv(lPos_uniformId, 1, res);
+	multMatrixPoint(VIEW, pointLightPos[3], res);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[3].position");
+	glUniform4fv(loc, 1, res);
+	glUniform4fv(lPos_uniformId, 1, res);
+	multMatrixPoint(VIEW, pointLightPos[4], res);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[4].position");
+	glUniform4fv(loc, 1, res);
+	glUniform4fv(lPos_uniformId, 1, res);
+	multMatrixPoint(VIEW, pointLightPos[5], res);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[5].position");
+	glUniform4fv(loc, 1, res);
+	glUniform4fv(lPos_uniformId, 1, res);
+
+	glutTimerFunc(0, animate, 0);
+	glutTimerFunc(0, rolling_rocks_animate, 0);
+
+	// camera follows rover
+	// sqrt(dot(pt1 - pt2, pt1 - pt2))
+	float dist = 5;
+	//float dist[3] = {rover.position[0][0] - cameras[2].camPos[0],  rover.position[0][1] - cameras[2].camPos[1], rover.position[0][2] - cameras[2].camPos[2] };
+	float height = cameras[2].camPos[1];
+	cameras[2].camPos[0] = rover.position[0][0] - (rover.direction[0] * dist);
+	cameras[2].camPos[1] = rover.position[0][1] - (rover.direction[1] * dist);
+	cameras[2].camPos[2] = rover.position[0][2] - (rover.direction[2] * dist);
+	cameras[2].camTarget[0] = rover.position[0][0];
+	cameras[2].camTarget[1] = rover.position[0][1];
+	cameras[2].camTarget[2] = rover.position[0][2];
+
+	int objId = 0; //id of the object mesh - to be used as index of mesh: Mymeshes[objID] means the current mesh
+
+	// rover
+	// send the material
 	pushMatrix(MODEL);
-	translate(MODEL, rover.position_body[0], rover.position_body[1], rover.position_body[2]);
-	rotate(MODEL, rover.direction_angle, 0, 1, 0);
+	//rotate(MODEL, (-rover.angle * 180) / (3.14), 0, 1, 0);
+	//translate(MODEL, -0.5, -0.5, -0.5);
+	//pushMatrix(MODEL);
+	//objId = drawBody(objId);
+	//objId = drawWheels(objId);
+	//popMatrix(MODEL);
 
-	// send matrices to OGL
-	computeDerivedMatrix(PROJ_VIEW_MODEL);
-	glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
-	glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
-	computeNormalMatrix3x3();
-	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
-
-	// Render mesh
-	glBindVertexArray(rover.body[0].vao);
-	glDrawElements(rover.body[0].type, rover.body[0].numIndexes, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-	popMatrix(MODEL);
-
-    // rover wheels
-	objId = 0; 
-	for (int i = 0; i < rover.wheels.size(); ++i) {
+	for (int i = 0; i < rover.body.size(); ++i) {
 
 		// send the material
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
-		glUniform4fv(loc, 1, rover.wheels[objId].mat.ambient);
+		glUniform4fv(loc, 1, rover.body[objId].mat.ambient);
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
-		glUniform4fv(loc, 1, rover.wheels[objId].mat.diffuse);
+		glUniform4fv(loc, 1, rover.body[objId].mat.diffuse);
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-		glUniform4fv(loc, 1, rover.wheels[objId].mat.specular);
+		glUniform4fv(loc, 1, rover.body[objId].mat.specular);
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-		glUniform1f(loc, rover.wheels[objId].mat.shininess);
+		glUniform1f(loc, rover.body[objId].mat.shininess);
 		pushMatrix(MODEL);
-		rotate(MODEL, rover.direction_angle, 0, 1, 0);
+		translate(MODEL, rover.position[i][0], rover.position[i][1], rover.position[i][2]);
+		rotate(MODEL, (-rover.angle * 180) / (3.14), 0, 1, 0);
+		// if not the cube
+		if (i > 0) {
+			rotate(MODEL, -90, 1, 0, 0);
+			rotate(MODEL, 90, 0, 0, 1);
+		}
 		if (i == 0) {
-			translate(MODEL, rover.position_wheel1[0], rover.position_wheel1[1], rover.position_wheel1[2]);
+			translate(MODEL, -0.5, -0.5, -0.5);
 		}
-		if (i == 1) {
-			translate(MODEL, rover.position_wheel2[0], rover.position_wheel2[1], rover.position_wheel2[2]);
-		}
-		if (i == 2) {
-			translate(MODEL, rover.position_wheel3[0], rover.position_wheel3[1], rover.position_wheel3[2]);
-		}
-		if (i == 3) {
-			translate(MODEL, rover.position_wheel4[0], rover.position_wheel4[1], rover.position_wheel4[2]);
-		}
-		rotate(MODEL, -90, 1, 0, 0);
 		// send matrices to OGL
 		computeDerivedMatrix(PROJ_VIEW_MODEL);
 		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
@@ -324,14 +504,43 @@ void renderScene(void) {
 		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
 
 		// Render mesh
-		glBindVertexArray(rover.wheels[objId].vao);
+		glBindVertexArray(rover.body[objId].vao);
 
-		glDrawElements(rover.wheels[objId].type, rover.wheels[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glDrawElements(rover.body[objId].type, rover.body[objId].numIndexes, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		popMatrix(MODEL);
 		objId++;
 	}
+	
+	
+	// send matrices to OGL
+	
+
+	popMatrix(MODEL);
+
+	pushMatrix(MODEL);
+	drawTerrain(0);
+	popMatrix(MODEL);
+	pushMatrix(MODEL);
+	drawRocks(0);
+	popMatrix(MODEL);
+	pushMatrix(MODEL);
+	drawStaticObject(0);
+
+	// send matrices to OGL
+
+
+	popMatrix(MODEL);
+
+	// rover
+	
+
+	
+
+	
+
+    
 
 	//Render text (bitmap fonts) in screen coordinates. So use ortoghonal projection with viewport coordinates.
 	glDisable(GL_DEPTH_TEST);
@@ -377,35 +586,25 @@ void processKeys(unsigned char key, int xx, int yy)
 	switch (key) {
 
 	case '1':
-		activeCamera = 1;
+		activeCamera = 0;
 		break;
 	case '2':
-		activeCamera = 2;
+		activeCamera = 1;
 		break;
 	case '3':
-		activeCamera = 3;
+		activeCamera = 2;
 		break;
 	case 'o':
-		rover.direction_angle -= 10.0f;
+		rover.angle -= 0.1f; 
 		break;
 	case 'p':
-		rover.direction_angle += 10.0f;
+		rover.angle += 0.1f;
 		break;
 	case 'q':
-		rover.speed += 1.0f;
-		rover.position_wheel1[0] += rover.speed * 2;
-		rover.position_wheel2[0] += rover.speed * 2;
-		rover.position_wheel3[0] += rover.speed * 2;
-		rover.position_wheel4[0] += rover.speed * 2;
-		rover.position_body[0] += rover.speed * 2;
+		rover.speed += 0.0001f;
 		break;
 	case 'a':
-		rover.speed -= 1.0f;
-		rover.position_wheel1[0] += rover.speed * rover.direction_angle;
-		rover.position_wheel2[0] += rover.speed * rover.direction_angle;
-		rover.position_wheel3[0] += rover.speed * rover.direction_angle;
-		rover.position_wheel4[0] += rover.speed * rover.direction_angle;
-		rover.position_body[0] += rover.speed * rover.direction_angle;
+		rover.speed -= 0.0001f;
 		break;
 
 	case 27:
@@ -413,7 +612,27 @@ void processKeys(unsigned char key, int xx, int yy)
 		break;
 
 	case 'c':
-		printf("Camera Spherical Coordinates (%f, %f, %f)\n", alpha, beta, r);
+		//printf("Camera Spherical Coordinates (%f, %f, %f)\n", alpha, beta, r);
+		if (pointLightOn == false) {
+			float pointLightPos[NUM_POINT_LIGHTS][4] = { {-35.0f, 4.0f, -35.0f, 1.0f},
+				{0.7f,  0.2f,  2.0f},
+					{2.3f, -3.3f, -4.0f},
+					{-4.0f,  2.0f, -12.0f },
+					{0.0f,  0.0f, -3.0f},
+					{0.0f, 4.0f, 15.0f, 1.0f}
+			};
+			pointLightOn == true;
+		}
+		if (pointLightOn == true) {
+			float pointLightPos[NUM_POINT_LIGHTS][4] = { {0,0,0,0},
+				{0,0,0,0},
+					{0,0,0,0},
+					{0,0,0,0},
+					{0,0,0,0},
+					{0,0,0,0},
+			};
+			pointLightOn == false;
+		}
 		break;
 	case 'm': glEnable(GL_MULTISAMPLE); break;
 	case 'n': glDisable(GL_MULTISAMPLE); break;
@@ -488,6 +707,7 @@ void processMouseMotion(int xx, int yy)
 			rAux = 0.1f;
 	}
 
+// wieder einkommentieren
 	cameras[activeCamera].camPos[0] = rAux * sin(alphaAux * 3.14f / 180.0f) * cos(betaAux * 3.14f / 180.0f);
 	cameras[activeCamera].camPos[2] = rAux * cos(alphaAux * 3.14f / 180.0f) * cos(betaAux * 3.14f / 180.0f);
 	cameras[activeCamera].camPos[1] = rAux * sin(betaAux * 3.14f / 180.0f);
@@ -521,8 +741,8 @@ GLuint setupShaders() {
 
 	// Shader for models
 	shader.init();
-	shader.loadShader(VSShaderLib::VERTEX_SHADER, "shaders/pointlight_gouraud.vert");
-	shader.loadShader(VSShaderLib::FRAGMENT_SHADER, "shaders/pointlight_gouraud.frag");
+	shader.loadShader(VSShaderLib::VERTEX_SHADER, "shaders/pointlight_phong.vert");
+	shader.loadShader(VSShaderLib::FRAGMENT_SHADER, "shaders/pointlight_phong.frag");
 
 	// set semantics for the shader variables
 	glBindFragDataLocation(shader.getProgramIndex(), 0, "colorOut");
@@ -599,7 +819,8 @@ void init()
 
 
 	// create geometry and VAO of quad
-	amesh = createQuad(40.0f, 40.0f);
+
+	amesh = createQuad(terrain_x, terrain_y);
 	float diff_terrain[] = { 0.8f, 0.6f, 0.4f, 1.0f };
 	memcpy(amesh.mat.ambient, amb, 4 * sizeof(float));
 	memcpy(amesh.mat.diffuse, diff_terrain, 4 * sizeof(float));
@@ -615,7 +836,19 @@ void init()
 	float spec_cone[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 	float emissiv_cone[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-	// // create geometry and VAO of the 
+	// create geometry and VAO of the Cone
+	for (int i = 0; i < 10; i++) {
+		amesh = createCone(1.5f, 0.5f, 20);
+		memcpy(amesh.mat.ambient, amb_cone, 4 * sizeof(float));
+		memcpy(amesh.mat.diffuse, diff_cone, 4 * sizeof(float));
+		memcpy(amesh.mat.specular, spec_cone, 4 * sizeof(float));
+		memcpy(amesh.mat.emissive, emissiv_cone, 4 * sizeof(float));
+		amesh.mat.shininess = shininess;
+		amesh.mat.texCount = texcount;
+		static_objects.push_back(amesh);
+	}
+
+	// create geometry and VAO of the Cone
 	for (int i = 0; i < 10; i++) {
 		amesh = createCone(1.5f, 0.5f, 20);
 		memcpy(amesh.mat.ambient, amb_cone, 4 * sizeof(float));
@@ -642,8 +875,8 @@ void init()
 	amesh.mat.texCount = texcount;
 	rover.body.push_back(amesh);
 
-	float innerRadius = 0.05f;
-	float outerRadius = 0.5f;
+	float innerRadius = 0.03f;
+	float outerRadius = 0.3f;
 	int rings = 20;
 	int sides = 5;
 	for (int i = 1; i < 5; i++) {
@@ -654,8 +887,25 @@ void init()
 		memcpy(amesh.mat.emissive, emissive_rover, 4 * sizeof(float));
 		amesh.mat.shininess = shininess;
 		amesh.mat.texCount = texcount;
-		rover.wheels.push_back(amesh);
+		rover.body.push_back(amesh);
 	}
+
+	for (int i = 0; i < 40; i++) {
+		amesh = createSphere(0.2, 3);
+		memcpy(amesh.mat.ambient, amb_rover, 4 * sizeof(float));
+		memcpy(amesh.mat.diffuse, diff_rover, 4 * sizeof(float));
+		memcpy(amesh.mat.specular, spec_rover, 4 * sizeof(float));
+		memcpy(amesh.mat.emissive, emissive_rover, 4 * sizeof(float));
+		amesh.mat.shininess = shininess;
+		amesh.mat.texCount = texcount;
+		Rocks new_rock;
+		new_rock.amesh.push_back(amesh);
+		new_rock.position[0] = (rand() % range + min_terrain) + 0.9;
+		new_rock.position[2] = (rand() % range + min_terrain) + 0.9;
+		new_rock.angle = (rand() % range_angle + min_angle);
+		rocks.push_back(new_rock);
+	}
+
 
 	// some GL settings
 	glEnable(GL_DEPTH_TEST);
@@ -681,16 +931,6 @@ int main(int argc, char** argv) {
 	// top ortho
 	cameras[1].camPos[1] = 20;
 	cameras[1].type = 1;
-
-	// camera follows rover
-	float dist[3] = { cameras[2].camPos[0] - rover.position_body[0], cameras[2].camPos[1] - rover.position_body[1], cameras[2].camPos[2] - rover.position_body[2] };
-	float height = cameras[2].camPos[1];
-	cameras[2].camPos[0] = -rover.direction_angle * dist[0];
-	cameras[2].camPos[1] = (-rover.direction_angle * dist[1]) + (0, height, 0);
-	cameras[2].camPos[2] = -rover.direction_angle * dist[2];
-	cameras[2].camTarget[0] = rover.position_body[0];
-	cameras[2].camTarget[1] = rover.position_body[1];
-	cameras[2].camTarget[2] = rover.position_body[2];
 
 
 	//  GLUT initialization
@@ -738,13 +978,10 @@ int main(int argc, char** argv) {
 
 	init();
 
-	float max = 20.0f;
-	float min = -20.0f;
-	int range = max - min + 1;
 	for (int i = 0; i < static_objects.size(); i++) {
 		//TODO check case 0,0
-		static_x_pos.push_back(rand() % range + min);
-		static_y_pos.push_back(rand() % range + min);
+		static_x_pos.push_back((rand() % range + min_terrain) + 0.9);
+		static_y_pos.push_back((rand() % range + min_terrain) + 0.9);
 	}
 
 	//  GLUT main loop

@@ -1,5 +1,16 @@
 #version 330
 
+#define NUMBER_POINT_LIGHTS 6
+#define NUMBER_SPOT_LIGHTS 2
+
+uniform sampler2D texmap0;
+uniform sampler2D texmap1;
+uniform sampler2D texmap2;
+
+uniform PointLight pointLights[NUMBER_POINT_LIGHTS];
+uniform SpotLight spotLights[NUMBER_SPOT_LIGHTS];
+uniform DirectionalLight dirLight;
+
 uniform mat4 m_pvm;
 uniform mat4 m_viewModel;
 uniform mat3 m_normal;
@@ -28,6 +39,7 @@ out Data {
 void main () {
 
 	vec4 pos = m_viewModel * position;
+
 
 	vec3 normal = normalize(m_normal * normal.xyz);
 	vec3 lightDir = vec3(l_pos - pos);
