@@ -224,6 +224,7 @@ void changeSize(int w, int h) {
 
 int drawWheels(int objId) {
 	GLint loc;
+	float angle = 0;
 	for (int i = 1; i < 5; i++) {
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
 		glUniform4fv(loc, 1, rover.body[objId].mat.ambient);
@@ -236,9 +237,30 @@ int drawWheels(int objId) {
 
 		pushMatrix(MODEL);
 		translate(MODEL, rover.position[i][0], rover.position[i][1], rover.position[i][2]);
+		if (i == 1 || i == 2) {
+			angle = rover.angle;
+			if (rover.angle > 0.6) {
+				angle = 0.6;
+			}
+			if (rover.angle < -0.6) {
+				angle = -0.6;
+			}
+			rotate(MODEL, (angle * 180) / 3.14, 0, 1, 0);
+		}
+		if (i == 3 || i == 4) {
+			angle = rover.angle;
+			if (rover.angle > 0.6) {
+				angle = 0.6;
+			}
+			if (rover.angle < -0.6) {
+				angle = -0.6;
+			}
+			rotate(MODEL, (-angle * 180) / 3.14, 0, 1, 0);
+		}
 
 		rotate(MODEL, -90, 1, 0, 0);
 		rotate(MODEL, 90, 0, 0, 1);
+
 
 		computeDerivedMatrix(PROJ_VIEW_MODEL);
 		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
@@ -253,6 +275,7 @@ int drawWheels(int objId) {
 		glBindVertexArray(0);
 		popMatrix(MODEL);
 		objId++;
+
 	}
 	
 	return objId;
@@ -268,12 +291,12 @@ int drawBody(int objId) {
 	glUniform4fv(loc, 1, rover.body[objId].mat.specular);
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 	glUniform1f(loc, rover.body[objId].mat.shininess);
-
-	pushMatrix(MODEL);
-	translate(MODEL, rover.position[0][0], rover.position[0][1], rover.position[0][2]);
-	//rotate(MODEL, (-rover.angle * 180) / (3.14), 0, 1, 0);
-	//translate(MODEL, -0.5, -0.5, -0.5);
 	
+	pushMatrix(MODEL);
+	rotate(MODEL, (-rover.angle * 180) / 3.14, 0, 1, 0);
+	drawWheels(1);
+	translate(MODEL, -0.5, -0.5, -0.5);
+	translate(MODEL, rover.position[0][0], rover.position[0][1], rover.position[0][2]);
 
 	computeDerivedMatrix(PROJ_VIEW_MODEL);
 	glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
@@ -294,36 +317,34 @@ int drawBody(int objId) {
 
 int drawTerrain(int objId) {
 	GLint loc;
-	for (int i = 0; i < terrain.size(); ++i) {
 
-		// send the material
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
-		glUniform4fv(loc, 1, terrain[objId].mat.ambient);
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
-		glUniform4fv(loc, 1, terrain[objId].mat.diffuse);
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-		glUniform4fv(loc, 1, terrain[objId].mat.specular);
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-		glUniform1f(loc, terrain[objId].mat.shininess);
-		pushMatrix(MODEL);
-		rotate(MODEL, -90, 1, 0, 0);
+	// send the material
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
+	glUniform4fv(loc, 1, terrain[objId].mat.ambient);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
+	glUniform4fv(loc, 1, terrain[objId].mat.diffuse);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
+	glUniform4fv(loc, 1, terrain[objId].mat.specular);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
+	glUniform1f(loc, terrain[objId].mat.shininess);
+	pushMatrix(MODEL);
+	rotate(MODEL, -90, 1, 0, 0);
 
-		// send matrices to OGL
-		computeDerivedMatrix(PROJ_VIEW_MODEL);
-		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
-		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
-		computeNormalMatrix3x3();
-		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
+	// send matrices to OGL
+	computeDerivedMatrix(PROJ_VIEW_MODEL);
+	glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
+	glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
+	computeNormalMatrix3x3();
+	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
 
-		// Render mesh
-		glBindVertexArray(terrain[objId].vao);
+	// Render mesh
+	glBindVertexArray(terrain[objId].vao);
 
-		glDrawElements(terrain[objId].type, terrain[objId].numIndexes, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+	glDrawElements(terrain[objId].type, terrain[objId].numIndexes, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
 
-		popMatrix(MODEL);
-		objId++;
-	}
+	popMatrix(MODEL);
+	objId++;
 	return objId;
 }
 
@@ -376,7 +397,6 @@ int drawRocks(int objId) {
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 		glUniform1f(loc, rocks[i].amesh[0].mat.shininess);
 		pushMatrix(MODEL);
-		// TODO: update positions
 		translate(MODEL, rocks[i].position[0], rocks[i].position[1], rocks[i].position[2]);
 
 		// send matrices to OGL
@@ -465,82 +485,12 @@ void renderScene(void) {
 	int objId = 0; //id of the object mesh - to be used as index of mesh: Mymeshes[objID] means the current mesh
 
 	// rover
-	// send the material
-	pushMatrix(MODEL);
-	//rotate(MODEL, (-rover.angle * 180) / (3.14), 0, 1, 0);
-	//translate(MODEL, -0.5, -0.5, -0.5);
-	//pushMatrix(MODEL);
-	//objId = drawBody(objId);
-	//objId = drawWheels(objId);
-	//popMatrix(MODEL);
-
-	for (int i = 0; i < rover.body.size(); ++i) {
-
-		// send the material
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
-		glUniform4fv(loc, 1, rover.body[objId].mat.ambient);
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
-		glUniform4fv(loc, 1, rover.body[objId].mat.diffuse);
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-		glUniform4fv(loc, 1, rover.body[objId].mat.specular);
-		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-		glUniform1f(loc, rover.body[objId].mat.shininess);
-		pushMatrix(MODEL);
-		translate(MODEL, rover.position[i][0], rover.position[i][1], rover.position[i][2]);
-		rotate(MODEL, (-rover.angle * 180) / (3.14), 0, 1, 0);
-		// if not the cube
-		if (i > 0) {
-			rotate(MODEL, -90, 1, 0, 0);
-			rotate(MODEL, 90, 0, 0, 1);
-		}
-		if (i == 0) {
-			translate(MODEL, -0.5, -0.5, -0.5);
-		}
-		// send matrices to OGL
-		computeDerivedMatrix(PROJ_VIEW_MODEL);
-		glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
-		glUniformMatrix4fv(pvm_uniformId, 1, GL_FALSE, mCompMatrix[PROJ_VIEW_MODEL]);
-		computeNormalMatrix3x3();
-		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
-
-		// Render mesh
-		glBindVertexArray(rover.body[objId].vao);
-
-		glDrawElements(rover.body[objId].type, rover.body[objId].numIndexes, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
-
-		popMatrix(MODEL);
-		objId++;
-	}
-	
-	
-	// send matrices to OGL
-	
-
-	popMatrix(MODEL);
-
-	pushMatrix(MODEL);
+	// draw rover
+	drawBody(0);
 	drawTerrain(0);
-	popMatrix(MODEL);
-	pushMatrix(MODEL);
 	drawRocks(0);
-	popMatrix(MODEL);
-	pushMatrix(MODEL);
 	drawStaticObject(0);
-
-	// send matrices to OGL
-
-
-	popMatrix(MODEL);
-
-	// rover
 	
-
-	
-
-	
-
-    
 
 	//Render text (bitmap fonts) in screen coordinates. So use ortoghonal projection with viewport coordinates.
 	glDisable(GL_DEPTH_TEST);
