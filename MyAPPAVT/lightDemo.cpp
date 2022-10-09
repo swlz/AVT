@@ -108,17 +108,18 @@ char s[32];
 #define NUM_SPOT_LIGHTS 2
 
 float directionalLightPos[4]{ 1.0f, 1000.0f, 1.0f, 0.0f };
-float pointLightPos[NUM_POINT_LIGHTS][4] = { {0,0,0,0},
-				{0,0,0,0},
-					{0,0,0,0},
-					{0,0,0,0},
-					{0,0,0,0},
-					{0,0,0,0},
+float pointLightPos[NUM_POINT_LIGHTS][4] = { {-35.0f, 4.0f, -35.0f, 1.0f},
+				{0.7f,  0.2f,  2.0f},
+					{2.3f, -3.3f, -4.0f},
+					{-4.0f,  2.0f, -12.0f },
+					{0.0f,  0.0f, -3.0f},
+					{0.0f, 4.0f, 15.0f, 1.0f}
 };
-bool pointLightOn = false;
-float spotLightPos[NUM_SPOT_LIGHTS][4] = { {-35.0f, 4.0f, -35.0f, 1.0f},
-{0.7f,  0.2f,  2.0f} 
+float spotLightPos[NUM_SPOT_LIGHTS][4] = { {rover.position[1][0], rover.position[1][1]+0.4, rover.position[1][2], 1.0f},
+{rover.position[2][0], rover.position[2][1]+0.4, rover.position[2][2], 1.0f}
 };
+bool spot_enabled = false;
+bool point_enabled = false;
 
 // Time Stuff
 int prev_time = 0;
@@ -222,18 +223,18 @@ void changeSize(int w, int h) {
 // Render stufff
 //
 
-int drawWheels(int objId) {
+void drawWheels() {
 	GLint loc;
 	float angle = 0;
 	for (int i = 1; i < 5; i++) {
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
-		glUniform4fv(loc, 1, rover.body[objId].mat.ambient);
+		glUniform4fv(loc, 1, rover.body[i].mat.ambient);
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
-		glUniform4fv(loc, 1, rover.body[objId].mat.diffuse);
+		glUniform4fv(loc, 1, rover.body[i].mat.diffuse);
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-		glUniform4fv(loc, 1, rover.body[objId].mat.specular);
+		glUniform4fv(loc, 1, rover.body[i].mat.specular);
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-		glUniform1f(loc, rover.body[objId].mat.shininess);
+		glUniform1f(loc, rover.body[i].mat.shininess);
 
 		pushMatrix(MODEL);
 		translate(MODEL, rover.position[i][0], rover.position[i][1], rover.position[i][2]);
@@ -269,32 +270,28 @@ int drawWheels(int objId) {
 		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
 
 		// Render mesh
-		glBindVertexArray(rover.body[objId].vao);
+		glBindVertexArray(rover.body[i].vao);
 
-		glDrawElements(rover.body[objId].type, rover.body[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glDrawElements(rover.body[i].type, rover.body[i].numIndexes, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 		popMatrix(MODEL);
-		objId++;
-
 	}
-	
-	return objId;
 }
 
-int drawBody(int objId) {
+void drawBody() {
 	GLint loc;
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
-	glUniform4fv(loc, 1, rover.body[objId].mat.ambient);
+	glUniform4fv(loc, 1, rover.body[0].mat.ambient);
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
-	glUniform4fv(loc, 1, rover.body[objId].mat.diffuse);
+	glUniform4fv(loc, 1, rover.body[0].mat.diffuse);
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-	glUniform4fv(loc, 1, rover.body[objId].mat.specular);
+	glUniform4fv(loc, 1, rover.body[0].mat.specular);
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-	glUniform1f(loc, rover.body[objId].mat.shininess);
+	glUniform1f(loc, rover.body[0].mat.shininess);
 	
 	pushMatrix(MODEL);
 	rotate(MODEL, (-rover.angle * 180) / 3.14, 0, 1, 0);
-	drawWheels(1);
+	drawWheels();
 	translate(MODEL, -0.5, -0.5, -0.5);
 	translate(MODEL, rover.position[0][0], rover.position[0][1], rover.position[0][2]);
 
@@ -305,28 +302,25 @@ int drawBody(int objId) {
 	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
 
 	// Render mesh
-	glBindVertexArray(rover.body[objId].vao);
+	glBindVertexArray(rover.body[0].vao);
 
-	glDrawElements(rover.body[objId].type, rover.body[objId].numIndexes, GL_UNSIGNED_INT, 0);
+	glDrawElements(rover.body[0].type, rover.body[0].numIndexes, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 	popMatrix(MODEL);
-	objId++;
-
-	return objId;
 }
 
-int drawTerrain(int objId) {
+void drawTerrain() {
 	GLint loc;
 
 	// send the material
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
-	glUniform4fv(loc, 1, terrain[objId].mat.ambient);
+	glUniform4fv(loc, 1, terrain[0].mat.ambient);
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
-	glUniform4fv(loc, 1, terrain[objId].mat.diffuse);
+	glUniform4fv(loc, 1, terrain[0].mat.diffuse);
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-	glUniform4fv(loc, 1, terrain[objId].mat.specular);
+	glUniform4fv(loc, 1, terrain[0].mat.specular);
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-	glUniform1f(loc, terrain[objId].mat.shininess);
+	glUniform1f(loc, terrain[0].mat.shininess);
 	pushMatrix(MODEL);
 	rotate(MODEL, -90, 1, 0, 0);
 
@@ -338,28 +332,26 @@ int drawTerrain(int objId) {
 	glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
 
 	// Render mesh
-	glBindVertexArray(terrain[objId].vao);
+	glBindVertexArray(terrain[0].vao);
 
-	glDrawElements(terrain[objId].type, terrain[objId].numIndexes, GL_UNSIGNED_INT, 0);
+	glDrawElements(terrain[0].type, terrain[0].numIndexes, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 
 	popMatrix(MODEL);
-	objId++;
-	return objId;
 }
 
-int drawStaticObject(int objId) {
+void drawStaticObject() {
 	GLint loc;
 	for (int i = 0; i < static_objects.size(); ++i) {
 		// send the material
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
-		glUniform4fv(loc, 1, static_objects[objId].mat.ambient);
+		glUniform4fv(loc, 1, static_objects[i].mat.ambient);
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.diffuse");
-		glUniform4fv(loc, 1, static_objects[objId].mat.diffuse);
+		glUniform4fv(loc, 1, static_objects[i].mat.diffuse);
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.specular");
-		glUniform4fv(loc, 1, static_objects[objId].mat.specular);
+		glUniform4fv(loc, 1, static_objects[i].mat.specular);
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
-		glUniform1f(loc, static_objects[objId].mat.shininess);
+		glUniform1f(loc, static_objects[i].mat.shininess);
 		pushMatrix(MODEL);
 		translate(MODEL, static_x_pos[i], 0.0f, static_y_pos[i]);
 
@@ -372,19 +364,17 @@ int drawStaticObject(int objId) {
 		glUniformMatrix3fv(normal_uniformId, 1, GL_FALSE, mNormal3x3);
 
 		// Render mesh
-		glBindVertexArray(static_objects[objId].vao);
+		glBindVertexArray(static_objects[i].vao);
 
-		glDrawElements(static_objects[objId].type, static_objects[objId].numIndexes, GL_UNSIGNED_INT, 0);
+		glDrawElements(static_objects[i].type, static_objects[i].numIndexes, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		popMatrix(MODEL);
-		objId++;
 
 	}
-	return objId;
 }
 
-int drawRocks(int objId) {
+void drawRocks() {
 	GLint loc;
 	for (int i = 0; i < rocks.size(); ++i) {
 		// send the material
@@ -413,10 +403,8 @@ int drawRocks(int objId) {
 		glBindVertexArray(0);
 
 		popMatrix(MODEL);
-		objId++;
 
 	}
-	return objId;
 }
 
 
@@ -466,6 +454,29 @@ void renderScene(void) {
 	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[5].position");
 	glUniform4fv(loc, 1, res);
 	glUniform4fv(lPos_uniformId, 1, res);
+	multMatrixPoint(VIEW, spotLightPos[0], res);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "spotLightPos[0].position");
+	glUniform4fv(loc, 1, res);
+	glUniform4fv(lPos_uniformId, 1, res);
+	multMatrixPoint(VIEW, spotLightPos[1], res);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "spotLightPos[1].position");
+	glUniform4fv(loc, 1, res);
+	glUniform4fv(lPos_uniformId, 1, res);
+	multMatrixPoint(VIEW, directionalLightPos, res);
+	loc = glGetUniformLocation(shader.getProgramIndex(), "directionalLightPos.direction");
+	glUniform4fv(loc, 1, res);
+	glUniform4fv(lPos_uniformId, 1, res);
+
+	//glLightfv(GL_LIGHT0, GL_POSITION, directionalLightPos);
+	glLightfv(GL_LIGHT1, GL_POSITION, spotLightPos[0]);
+	glLightfv(GL_LIGHT2, GL_POSITION, spotLightPos[1]);
+	glLightfv(GL_LIGHT3, GL_POSITION, pointLightPos[0]);
+	glLightfv(GL_LIGHT4, GL_POSITION, pointLightPos[1]);
+	glLightfv(GL_LIGHT5, GL_POSITION, pointLightPos[2]);
+	glLightfv(GL_LIGHT6, GL_POSITION, pointLightPos[3]);
+	glLightfv(GL_LIGHT7, GL_POSITION, pointLightPos[4]);
+	glLightfv(GL_LIGHT0, GL_POSITION, pointLightPos[5]);
+	
 
 	glutTimerFunc(0, animate, 0);
 	glutTimerFunc(0, rolling_rocks_animate, 0);
@@ -482,14 +493,12 @@ void renderScene(void) {
 	cameras[2].camTarget[1] = rover.position[0][1];
 	cameras[2].camTarget[2] = rover.position[0][2];
 
-	int objId = 0; //id of the object mesh - to be used as index of mesh: Mymeshes[objID] means the current mesh
-
 	// rover
 	// draw rover
-	drawBody(0);
-	drawTerrain(0);
-	drawRocks(0);
-	drawStaticObject(0);
+	drawBody();
+	drawTerrain();
+	drawRocks();
+	drawStaticObject();
 	
 
 	//Render text (bitmap fonts) in screen coordinates. So use ortoghonal projection with viewport coordinates.
@@ -563,25 +572,39 @@ void processKeys(unsigned char key, int xx, int yy)
 
 	case 'c':
 		//printf("Camera Spherical Coordinates (%f, %f, %f)\n", alpha, beta, r);
-		if (pointLightOn == false) {
-			float pointLightPos[NUM_POINT_LIGHTS][4] = { {-35.0f, 4.0f, -35.0f, 1.0f},
-				{0.7f,  0.2f,  2.0f},
-					{2.3f, -3.3f, -4.0f},
-					{-4.0f,  2.0f, -12.0f },
-					{0.0f,  0.0f, -3.0f},
-					{0.0f, 4.0f, 15.0f, 1.0f}
-			};
-			pointLightOn == true;
+		if (point_enabled == false) {
+			glEnable(GL_LIGHT3);
+			glEnable(GL_LIGHT4);
+			glEnable(GL_LIGHT5);
+			glEnable(GL_LIGHT6);
+			glEnable(GL_LIGHT7);
+			glEnable(GL_LIGHT0);
+			point_enabled = true;
 		}
-		if (pointLightOn == true) {
-			float pointLightPos[NUM_POINT_LIGHTS][4] = { {0,0,0,0},
-				{0,0,0,0},
-					{0,0,0,0},
-					{0,0,0,0},
-					{0,0,0,0},
-					{0,0,0,0},
-			};
-			pointLightOn == false;
+		
+		if (point_enabled == true) {
+			glDisable(GL_LIGHT3);
+			glDisable(GL_LIGHT4);
+			glDisable(GL_LIGHT5);
+			glDisable(GL_LIGHT6);
+			glDisable(GL_LIGHT7);
+			glDisable(GL_LIGHT0);
+			point_enabled = false;
+		}
+		
+
+		break;
+	case 'h':
+		if (spot_enabled == false) {
+			glEnable(GL_LIGHT1);
+			glEnable(GL_LIGHT2);
+			spot_enabled = true;
+		}
+
+		if (spot_enabled == true) {
+			glDisable(GL_LIGHT1);
+			glDisable(GL_LIGHT2);
+			spot_enabled = false;
 		}
 		break;
 	case 'm': glEnable(GL_MULTISAMPLE); break;
