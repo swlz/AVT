@@ -86,7 +86,15 @@ extern float mNormal3x3[9];
 GLint pvm_uniformId;
 GLint vm_uniformId;
 GLint normal_uniformId;
-GLint lPos_uniformId;
+GLint lPos_uniformId0;
+GLint lPos_uniformId1;
+GLint lPos_uniformId2;
+GLint lPos_uniformId3;
+GLint lPos_uniformId4;
+GLint lPos_uniformId5;
+GLint lPos_uniformId6;
+GLint lPos_uniformId7;
+GLint lPos_uniformId8;
 GLint tex_loc, tex_loc1, tex_loc2;
 
 // Cameras
@@ -107,17 +115,28 @@ char s[32];
 #define NUM_POINT_LIGHTS 6
 #define NUM_SPOT_LIGHTS 2
 
-float directionalLightPos[4]{ 1.0f, 1000.0f, 1.0f, 0.0f };
-float pointLightPos[NUM_POINT_LIGHTS][4] = { {-35.0f, 4.0f, -35.0f, 1.0f},
-				{0.7f,  0.2f,  2.0f},
-					{2.3f, -3.3f, -4.0f},
-					{-4.0f,  2.0f, -12.0f },
-					{0.0f,  0.0f, -3.0f},
-					{0.0f, 4.0f, 15.0f, 1.0f}
+float dirLight[4]{ 1.0f, 1000.0f, 1.0f, 0.0f };
+float dirLightAmbient[] = { 0.05f, 0.05f, 0.05f };
+float dirLightDiffuse[] = { 0.4f, 0.4f, 0.4f };
+float dirLightSpecular[] = { 0.5f, 0.5f, 0.5f };
+float dirLighEmissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+float dirLightShininess = 100.0f;
+float pointLights[NUM_POINT_LIGHTS][4] = { {-35.0f, 4.0f, -35.0f, 1.0f},
+				{-25.0f, 4.0f, -25.0f, 1.0f},
+					{0.0f, 4.0f, 15.0f, 1.0f},
+					{25.0f, 4.0f, 25.0f, 1.0f},
+					{35.0f, 4.0f, 35.0f, 1.0f},
+					{5.0f, 4.0f, 5.0f, 1.0f}
 };
-float spotLightPos[NUM_SPOT_LIGHTS][4] = { {rover.position[1][0], rover.position[1][1]+0.4, rover.position[1][2], 1.0f},
-{rover.position[2][0], rover.position[2][1]+0.4, rover.position[2][2], 1.0f}
+float pointLightAmbient[] = { 0.05f, 0.05f, 0.05f };
+float pointLightDiffuse[] = { 0.8f, 0.8f, 0.8f };
+float pointLightSpecular[] = { 1.0f, 1.0f, 1.0f };
+float spotLights[NUM_SPOT_LIGHTS][4] = { {rover.position[0][0]+0.5, rover.position[0][1]+1.5, rover.position[0][2]-0.6, 1.0f},
+{rover.position[0][0]+0.5, rover.position[0][1] + 1.5, rover.position[0][2]+0.6, 1.0f}
 };
+float spotLightAmbient[] = { 0.0f, 0.0f, 0.0f };
+float spotLightDiffuse[] = { 1.0f, 1.0f, 1.0f };
+float spotLightSpecular[] = { 1.0f, 1.0f, 1.0f };
 bool spot_enabled = false;
 bool point_enabled = false;
 
@@ -290,10 +309,9 @@ void drawBody() {
 	glUniform1f(loc, rover.body[0].mat.shininess);
 	
 	pushMatrix(MODEL);
-	rotate(MODEL, (-rover.angle * 180) / 3.14, 0, 1, 0);
-	drawWheels();
-	translate(MODEL, -0.5, -0.5, -0.5);
 	translate(MODEL, rover.position[0][0], rover.position[0][1], rover.position[0][2]);
+	rotate(MODEL, (-rover.angle * 180) / 3.14, 0, 1, 0);
+	translate(MODEL, -0.5, -0.5, -0.5);
 
 	computeDerivedMatrix(PROJ_VIEW_MODEL);
 	glUniformMatrix4fv(vm_uniformId, 1, GL_FALSE, mCompMatrix[VIEW_MODEL]);
@@ -409,9 +427,6 @@ void drawRocks() {
 
 
 void renderScene(void) {
-
-	GLint loc;
-
 	FrameCount++;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// load identity matrices
@@ -430,52 +445,66 @@ void renderScene(void) {
 
 	float res[4];
 	//multMatrixPoint(VIEW, lightPos, res);   //lightPos definido em World Coord so is converted to eye space
-	multMatrixPoint(VIEW, pointLightPos[0], res);
-	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[0].position");
-	glUniform4fv(loc, 1, res);
-	glUniform4fv(lPos_uniformId, 1, res);
-	multMatrixPoint(VIEW, pointLightPos[1], res);
-	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[1].position");
-	glUniform4fv(loc, 1, res);
-	glUniform4fv(lPos_uniformId, 1, res);
-	multMatrixPoint(VIEW, pointLightPos[2], res);
-	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[2].position");
-	glUniform4fv(loc, 1, res);
-	glUniform4fv(lPos_uniformId, 1, res);
-	multMatrixPoint(VIEW, pointLightPos[3], res);
-	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[3].position");
-	glUniform4fv(loc, 1, res);
-	glUniform4fv(lPos_uniformId, 1, res);
-	multMatrixPoint(VIEW, pointLightPos[4], res);
-	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[4].position");
-	glUniform4fv(loc, 1, res);
-	glUniform4fv(lPos_uniformId, 1, res);
-	multMatrixPoint(VIEW, pointLightPos[5], res);
-	loc = glGetUniformLocation(shader.getProgramIndex(), "pointLights[5].position");
-	glUniform4fv(loc, 1, res);
-	glUniform4fv(lPos_uniformId, 1, res);
-	multMatrixPoint(VIEW, spotLightPos[0], res);
-	loc = glGetUniformLocation(shader.getProgramIndex(), "spotLightPos[0].position");
-	glUniform4fv(loc, 1, res);
-	glUniform4fv(lPos_uniformId, 1, res);
-	multMatrixPoint(VIEW, spotLightPos[1], res);
-	loc = glGetUniformLocation(shader.getProgramIndex(), "spotLightPos[1].position");
-	glUniform4fv(loc, 1, res);
-	glUniform4fv(lPos_uniformId, 1, res);
-	multMatrixPoint(VIEW, directionalLightPos, res);
-	loc = glGetUniformLocation(shader.getProgramIndex(), "directionalLightPos.direction");
-	glUniform4fv(loc, 1, res);
-	glUniform4fv(lPos_uniformId, 1, res);
-
+	multMatrixPoint(VIEW, pointLights[0], res);
+	lPos_uniformId0 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[0].position");
+	glUniform4fv(lPos_uniformId0, 1, res); 
+	std::fill(res, res + 4, 1);
+	multMatrixPoint(VIEW, pointLights[1], res);
+	lPos_uniformId1 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[1].position");
+	glUniform4fv(lPos_uniformId1, 1, res);
+	std::fill(res, res + 4, 1);
+	multMatrixPoint(VIEW, pointLights[2], res);
+	lPos_uniformId2 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[2].position");
+	glUniform4fv(lPos_uniformId2, 1, res);
+	std::fill(res, res + 4, 1);
+	multMatrixPoint(VIEW, pointLights[3], res);
+	lPos_uniformId3 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[3].position");
+	glUniform4fv(lPos_uniformId3, 1, res);
+	std::fill(res, res + 4, 1);
+	multMatrixPoint(VIEW, pointLights[4], res);
+	lPos_uniformId4 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[4].position");
+	glUniform4fv(lPos_uniformId4, 1, res);
+	std::fill(res, res + 4, 1);
+	multMatrixPoint(VIEW, pointLights[5], res);
+	lPos_uniformId5 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[5].position");
+	glUniform4fv(lPos_uniformId5, 1, res);
+	std::fill(res, res + 4, 1);
+	multMatrixPoint(VIEW, spotLights[0], res);
+	lPos_uniformId6 = glGetUniformLocation(shader.getProgramIndex(), "spotLights[0].position");
+	glUniform4fv(lPos_uniformId6, 1, res);
+	std::fill(res, res + 4, 1);
+	multMatrixPoint(VIEW, spotLights[1], res);
+	lPos_uniformId7 = glGetUniformLocation(shader.getProgramIndex(), "spotLights[1].position");
+	glUniform4fv(lPos_uniformId7, 1, res);
+	std::fill(res, res + 4, 1);
+	multMatrixPoint(VIEW, dirLight, res);
+	lPos_uniformId8 = glGetUniformLocation(shader.getProgramIndex(), "dirLight.direction");
+	glUniform4fv(lPos_uniformId8, 1, res);
+	lPos_uniformId8 = glGetUniformLocation(shader.getProgramIndex(), "dirLight.mat.ambient");
+	glUniform4fv(lPos_uniformId8, 1, dirLightAmbient);
+	lPos_uniformId8 = glGetUniformLocation(shader.getProgramIndex(), "dirLight.mat.diffuse");
+	glUniform4fv(lPos_uniformId8, 1, dirLightDiffuse);
+	lPos_uniformId8 = glGetUniformLocation(shader.getProgramIndex(), "dirLight.mat.specular");
+	glUniform4fv(lPos_uniformId8, 1, dirLightSpecular);
+	lPos_uniformId8 = glGetUniformLocation(shader.getProgramIndex(), "dirLight.mat.shininess");
+	glUniform1f(lPos_uniformId8, dirLightShininess);
 	//glLightfv(GL_LIGHT0, GL_POSITION, directionalLightPos);
-	glLightfv(GL_LIGHT1, GL_POSITION, spotLightPos[0]);
-	glLightfv(GL_LIGHT2, GL_POSITION, spotLightPos[1]);
-	glLightfv(GL_LIGHT3, GL_POSITION, pointLightPos[0]);
-	glLightfv(GL_LIGHT4, GL_POSITION, pointLightPos[1]);
-	glLightfv(GL_LIGHT5, GL_POSITION, pointLightPos[2]);
-	glLightfv(GL_LIGHT6, GL_POSITION, pointLightPos[3]);
-	glLightfv(GL_LIGHT7, GL_POSITION, pointLightPos[4]);
-	glLightfv(GL_LIGHT0, GL_POSITION, pointLightPos[5]);
+	glLightfv(GL_LIGHT1, GL_POSITION, spotLights[0]);
+	glLightfv(GL_LIGHT2, GL_POSITION, spotLights[1]);
+	glLightfv(GL_LIGHT3, GL_POSITION, pointLights[0]);
+	glLightfv(GL_LIGHT4, GL_POSITION, pointLights[1]);
+	glLightfv(GL_LIGHT5, GL_POSITION, pointLights[2]);
+	glLightfv(GL_LIGHT6, GL_POSITION, pointLights[3]);
+	glLightfv(GL_LIGHT7, GL_POSITION, pointLights[4]);
+	glLightfv(GL_LIGHT0, GL_POSITION, pointLights[5]);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
+	glEnable(GL_LIGHT2);
+	glEnable(GL_LIGHT3);
+	glEnable(GL_LIGHT4);
+	glEnable(GL_LIGHT5);
+	glEnable(GL_LIGHT6);
+	glEnable(GL_LIGHT7);
 	
 
 	glutTimerFunc(0, animate, 0);
@@ -495,8 +524,14 @@ void renderScene(void) {
 
 	// rover
 	// draw rover
-	drawBody();
+	//
 	drawTerrain();
+	pushMatrix(MODEL);
+	drawBody();
+	//rotate(MODEL, (-rover.angle * 180) / 3.14, 0, 1, 0);
+	//translate(MODEL, -0.5, -0.5, -0.5);
+	drawWheels();
+	popMatrix(MODEL);
 	drawRocks();
 	drawStaticObject();
 	
@@ -734,7 +769,15 @@ GLuint setupShaders() {
 	pvm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "m_pvm");
 	vm_uniformId = glGetUniformLocation(shader.getProgramIndex(), "m_viewModel");
 	normal_uniformId = glGetUniformLocation(shader.getProgramIndex(), "m_normal");
-	lPos_uniformId = glGetUniformLocation(shader.getProgramIndex(), "l_pos");
+	lPos_uniformId0 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[0].position");
+	lPos_uniformId1 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[1].position");
+	lPos_uniformId2 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[2].position");
+	lPos_uniformId3 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[3].position");
+	lPos_uniformId4 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[4].position");
+	lPos_uniformId5 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[5].position");
+	lPos_uniformId6 = glGetUniformLocation(shader.getProgramIndex(), "spotLights[0].position");
+	lPos_uniformId7 = glGetUniformLocation(shader.getProgramIndex(), "spotLights[1].position");
+	lPos_uniformId8 = glGetUniformLocation(shader.getProgramIndex(), "dirLight.direction");
 	tex_loc = glGetUniformLocation(shader.getProgramIndex(), "texmap");
 	tex_loc1 = glGetUniformLocation(shader.getProgramIndex(), "texmap1");
 	tex_loc2 = glGetUniformLocation(shader.getProgramIndex(), "texmap2");
