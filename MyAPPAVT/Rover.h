@@ -12,7 +12,7 @@ public:
 	std::vector<struct MyMesh> body;
 	std::vector<struct MyMesh> wheels;
 	// 1st ... pos_cube, rest ... pos_wheel
-	float position[5][3] = { { 0.0f, 0.8f, 0.0f },
+	float position[5][3] = { { 0.0f, 0.5f, 0.0f },
 							{ 0.5f, 0.2f, 0.5f },
 									{ -0.5f, 0.2f, 0.5f },
 									{ 0.5f, 0.2f, -0.5f },

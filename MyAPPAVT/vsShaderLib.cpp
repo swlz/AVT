@@ -111,7 +111,6 @@ VSShaderLib::loadShader(VSShaderLib::ShaderType st, std::string fileName) {
 		glShaderSource(pShader[st], 1, &ss,NULL);
 		glAttachShader(pProgram, pShader[st]);
 		glCompileShader(pShader[st]);
-
 		free(s);
 	}
 }
