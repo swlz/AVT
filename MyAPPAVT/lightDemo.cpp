@@ -453,38 +453,43 @@ void renderScene(void) {
 
 	float res[4];
 	//multMatrixPoint(VIEW, lightPos, res);   //lightPos definido em World Coord so is converted to eye space
-	lnum_point_light = glGetUniformLocation(shader.getProgramIndex(), "NUMBER_POINT_LIGHTS");
-	glUniform1i(lnum_point_light, NUM_POINT_LIGHTS);
-	lnum_spot_light = glGetUniformLocation(shader.getProgramIndex(), "NUMBER_SPOT_LIGHTS");
-	glUniform1i(lnum_spot_light, NUM_SPOT_LIGHTS);
 	multMatrixPoint(VIEW, pointLights[0], res);
 	lPos_uniformId0 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[0].position");
+	printf("pos: %d", lPos_uniformId0);
 	glUniform4fv(lPos_uniformId0, 1, res);
+
 	multMatrixPoint(VIEW, pointLights[1], res);
 	lPos_uniformId1 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[1].position");
 	glUniform4fv(lPos_uniformId1, 1, res);
+
 	multMatrixPoint(VIEW, pointLights[2], res);
 	lPos_uniformId2 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[2].position");
 	glUniform4fv(lPos_uniformId2, 1, res);
+
 	multMatrixPoint(VIEW, pointLights[3], res);
 	lPos_uniformId3 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[3].position");
 	glUniform4fv(lPos_uniformId3, 1, res);
+
 	multMatrixPoint(VIEW, pointLights[4], res);
 	lPos_uniformId4 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[4].position");
 	glUniform4fv(lPos_uniformId4, 1, res);
+
 	multMatrixPoint(VIEW, pointLights[5], res);
 	lPos_uniformId5 = glGetUniformLocation(shader.getProgramIndex(), "pointLights[5].position");
 	glUniform4fv(lPos_uniformId5, 1, res);
+
 	lPos_uniformId6 = glGetUniformLocation(shader.getProgramIndex(), "spotLights[0].cutoff");
 	glUniform1f(lPos_uniformId6, 0.0f);
 	multMatrixPoint(VIEW, spotLights[0], res);
 	lPos_uniformId6 = glGetUniformLocation(shader.getProgramIndex(), "spotLights[0].position");
 	glUniform4fv(lPos_uniformId6, 1, res);
+
 	multMatrixPoint(VIEW, spotLights[1], res);
 	lPos_uniformId7 = glGetUniformLocation(shader.getProgramIndex(), "spotLights[1].position");
 	glUniform4fv(lPos_uniformId7, 1, res);
 	lPos_uniformId7 = glGetUniformLocation(shader.getProgramIndex(), "spotLights[1].cutoff");
 	glUniform1f(lPos_uniformId7, 0.0f);
+
 	multMatrixPoint(VIEW, dirLight, res);
 	lPos_uniformId8 = glGetUniformLocation(shader.getProgramIndex(), "dirLight.direction");
 	//printf("pos: %d", lPos_uniformId8);
@@ -501,6 +506,7 @@ void renderScene(void) {
 
 	glLightfv(GL_LIGHT1, GL_POSITION, dirLight);
 	glLightfv(GL_LIGHT2, GL_POSITION, spotLights[1]);
+	//glLightfv(GL_LIGHT2 + index, GL_POSITION, spotLights[1]); ??
 	glLightfv(GL_LIGHT3, GL_POSITION, pointLights[0]);
 	glLightfv(GL_LIGHT4, GL_POSITION, pointLights[1]);
 	glLightfv(GL_LIGHT5, GL_POSITION, pointLights[2]);
@@ -525,7 +531,6 @@ void renderScene(void) {
 	drawTerrain();
 	pushMatrix(MODEL);
 	drawBody();
-	//drawWheels();
 	popMatrix(MODEL);
 	drawRocks();
 	drawStaticObject();
