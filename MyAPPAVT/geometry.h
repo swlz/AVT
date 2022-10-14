@@ -17,6 +17,9 @@ struct MyMesh {
 	GLuint texUnits[MAX_TEXTURES];
 	texType texTypes[4];
 	float transform[16];
+	float max_pos_vert[3];
+	float min_pos_vert[3];
+	float position[3];
 	GLuint numIndexes;
 	unsigned int type;
 	struct Material mat;

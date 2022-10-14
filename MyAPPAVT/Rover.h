@@ -20,4 +20,6 @@ public:
 	float direction[3] = { 0.0f, 0.0f, 1.0f };
 	float angle = 0.0f;
 	float speed = 0.0f;
+	float max_pos[3];
+	float min_pos[3];
 };

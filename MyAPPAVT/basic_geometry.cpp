@@ -71,6 +71,13 @@ MyMesh createCube() {
 
 	MyMesh amesh;
 	amesh.numIndexes = faceCount * 3;
+	amesh.max_pos_vert[0] = 1.0f;
+	amesh.max_pos_vert[1] = 1.0f;
+	amesh.max_pos_vert[2] = 1.0f;
+
+	amesh.min_pos_vert[0] = 0.0f;
+	amesh.min_pos_vert[1] = 0.0f;
+	amesh.min_pos_vert[2] = 0.0f;
 
 	glGenVertexArrays(1, &(amesh.vao));
 	glBindVertexArray(amesh.vao);
@@ -168,7 +175,6 @@ MyMesh createCone(float height, float baseRadius, int sides) {
 	//		0.0f,			height,  
 	//		-baseRadius,	height*2.0f,
 	//	};
-
 	return(computeVAO((p.size() - 4) / 2, &(p[2]), &(p[0]), sides, 0.0f));
 }
 
@@ -360,7 +366,32 @@ MyMesh computeVAO(int numP, float* p, float* points, int sides, float smoothCos)
 
 	MyMesh amesh;
 	amesh.numIndexes = count;
-
+	for (int i = 0; i < numVertices; i += 4) {
+		amesh.max_pos_vert[0] = -5;
+		amesh.max_pos_vert[1] = -5;
+		amesh.max_pos_vert[2] = -5;
+		amesh.min_pos_vert[0] = 100;
+		amesh.min_pos_vert[1] = 100;
+		amesh.min_pos_vert[2] = 100;
+		if (vertex[i] > amesh.max_pos_vert[0]) {
+			amesh.max_pos_vert[0] = vertex[i];
+		}
+		if (vertex[i] < amesh.min_pos_vert[0]) {
+			amesh.min_pos_vert[0] = vertex[i];
+		}
+		if (vertex[i + 1] > amesh.max_pos_vert[1]) {
+			amesh.max_pos_vert[1] = vertex[i + 1];
+		}
+		if (vertex[i + 1] < amesh.min_pos_vert[1]) {
+			amesh.min_pos_vert[1] = vertex[i + 1];
+		}
+		if (vertex[i + 2] > amesh.max_pos_vert[2]) {
+			amesh.max_pos_vert[2] = vertex[i + 2];
+		}
+		if (vertex[i + 2] < amesh.min_pos_vert[2]) {
+			amesh.min_pos_vert[2] = vertex[i + 2];
+		}
+	}
 
 	/* Calculate the tangent array*/
 	ComputeTangentArray(numVertices, vertex, normal, textco, amesh.numIndexes, faceIndex, tangent);
