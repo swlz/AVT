@@ -182,11 +182,11 @@
     <ClInclude Include="vsShaderLib.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\Desktop\AVT\AVT_Template\SHADERS\pointlight_phong.frag" />
-    <None Include="..\..\..\..\Desktop\AVT\AVT_Template\SHADERS\pointlight_phong.vert" />
     <None Include="Dependencies.exe" />
     <None Include="shaders\pointlight_gouraud.frag" />
     <None Include="shaders\pointlight_gouraud.vert" />
+    <None Include="shaders\pointlight_phong.frag" />
+    <None Include="shaders\pointlight_phong.vert" />
     <None Include="shaders\text.frag" />
     <None Include="shaders\text.vert" />
   </ItemGroup>

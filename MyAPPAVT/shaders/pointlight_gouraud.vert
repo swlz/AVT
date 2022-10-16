@@ -122,21 +122,21 @@ void main () {
 	vec3 l = normalize(lightDir);
 	vec3 e = normalize(eye);
 
-	float intensity = max(dot(n,l), 0.0);
-
 	
-	if (intensity > 0.0) {
+	DataOut.color = CalcDirLight(dirLight, n, e);
 
-		vec3 h = normalize(l + e);
-		float intSpec = max(dot(h,n), 0.0);
-		spec = mat.specular * pow(intSpec, mat.shininess);
+	for (int i = 0; i < NUMBER_POINT_LIGHTS; i++) {
+		vec3 pl = vec3(pointLights[i].position - pos);
+		vec3 pl2 = normalize(pl);
+		DataOut.color += CalcPointLight(pl2, n, e)/NUMBER_POINT_LIGHTS;
 	}
 
-	vec3 pl = vec3(pointLights[0].position - pos);
-	vec3 pl2 = normalize(pl);
-	vec4 col = CalcPointLight(pl2, n,  e);
-	
-	DataOut.color = max(intensity * mat.diffuse + spec, mat.ambient);
+	for (int i = 0; i < NUMBER_SPOT_LIGHTS; i++) {
+		vec3 l = normalize(vec3(spotLights[i].position - pos));
+		vec3 s = normalize(-spotLights[i].direction); 
+		float cutoff = spotLights[i].cutoff;
+		DataOut.color += calcSpotLight(l, s, cutoff, n, e);
+	}
 
 	gl_Position = m_pvm * position;	
 }

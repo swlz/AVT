@@ -366,13 +366,13 @@ MyMesh computeVAO(int numP, float* p, float* points, int sides, float smoothCos)
 
 	MyMesh amesh;
 	amesh.numIndexes = count;
-	for (int i = 0; i < numVertices; i += 4) {
-		amesh.max_pos_vert[0] = -5;
-		amesh.max_pos_vert[1] = -5;
-		amesh.max_pos_vert[2] = -5;
-		amesh.min_pos_vert[0] = 100;
-		amesh.min_pos_vert[1] = 100;
-		amesh.min_pos_vert[2] = 100;
+	for (int i = 0; i < numVertices; i += 3) {
+		amesh.max_pos_vert[0] = FLT_MIN;
+		amesh.max_pos_vert[1] = FLT_MIN;
+		amesh.max_pos_vert[2] = FLT_MIN;
+		amesh.min_pos_vert[0] = FLT_MAX;
+		amesh.min_pos_vert[1] = FLT_MAX;
+		amesh.min_pos_vert[2] = FLT_MAX;
 		if (vertex[i] > amesh.max_pos_vert[0]) {
 			amesh.max_pos_vert[0] = vertex[i];
 		}

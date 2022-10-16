@@ -39,13 +39,13 @@
 #include "Rover.h"
 #include "Rocks.h"
 #include <time.h>
+#include "Texture_Loader.h"
 
 using namespace std;
 
 #define NUMBER_POINT_LIGHTS 6
 #define NUMBER_SPOT_LIGHTS 2
 
-#define CAPTION "AVT Demo: Phong Shading and Text rendered with FreeType"
 int WindowHandle = 0;
 int WinX = 1024, WinY = 768;
 
@@ -115,32 +115,21 @@ char s[32];
 
 
 float dirLight[4]{ 1.0f, 1000.0f, 1.0f, 0.0f };
-float dirLightAmbient[] = { 0.05f, 0.05f, 0.05f };
-float dirLightDiffuse[] = { 0.4f, 0.4f, 0.4f };
-float dirLightSpecular[] = { 0.5f, 0.5f, 0.5f };
-float dirLighEmissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-float dirLightShininess = 100.0f;
-float pointLights[NUMBER_POINT_LIGHTS][4]= { {-35.0f, 4.0f, -35.0f, 1.0f},
-				{-25.0f, 4.0f, -25.0f, 1.0f},
-					{0.0f, 4.0f, 15.0f, 1.0f},
-					{25.0f, 4.0f, 25.0f, 1.0f},
-					{35.0f, 4.0f, 35.0f, 1.0f},
-					{5.0f, 4.0f, 5.0f, 1.0f}
+float pointLights[NUMBER_POINT_LIGHTS][4]= { {-0.0f, 20.0f, -0.0f, 1.0f},
+				{-0.5f, 20.0f, -0.5f, 1.0f},
+					{-1.0f, 20.0f, -1.0f, 1.0f},
+					{1.0f, 20.0f, 1.0f, 1.0f},
+					{0.5f, 20.0f, 0.5f, 1.0f},
+					{1.5f, 20.0f, 1.5f, 1.0f}
 };
-float pointLightAmbient[] = { 0.05f, 0.05f, 0.05f };
-float pointLightDiffuse[] = { 0.8f, 0.8f, 0.8f };
-float pointLightSpecular[] = { 1.0f, 1.0f, 1.0f };
-float spotLights[NUMBER_SPOT_LIGHTS][4] = { {rover.position[0][0]+0.3, rover.position[0][1], rover.position[0][2]+0.5, 1.0f},
-{rover.position[0][0]-0.3, rover.position[0][1], rover.position[0][2]+0.5, 1.0f}
+float spotLights[NUMBER_SPOT_LIGHTS][4] = { 
+	{rover.position[0][0]+0.03, rover.position[0][1]+0.02, rover.position[0][2]+0.05, 1.0f},
+{rover.position[0][0]-0.03, rover.position[0][1]+0.02, rover.position[0][2]+0.05, 1.0f}
 };
-float spotLightAmbient[3] = { 0.0f, 0.0f, 0.0f };
-float spotLightDiffuse[3] = { 1.0f, 1.0f, 1.0f };
-float spotLightSpecular[3] = { 1.0f, 1.0f, 1.0f };
 
 bool spot_enabled = true;
 bool point_enabled = true;
 
-// Time Stuff
 int prev_time = 0;
 
 // ------------------------------------------------------------
@@ -148,20 +137,39 @@ int prev_time = 0;
 // collision
 //
 bool checkForCollisionWithRover(Rover rover, MyMesh object) {
-	bool collision_X_max = rover.position[0][0] + rover.max_pos[0] >= object.max_pos_vert[0] &&
-		object.position[0] + object.max_pos_vert[0] >= rover.position[0][0];
-	bool collision_Y_max = rover.position[0][1] + rover.max_pos[1] >= object.max_pos_vert[1] &&
-		object.position[1] + object.max_pos_vert[1] >= rover.position[0][1];
-	bool collision_X_min = rover.position[0][0] + rover.min_pos[0] >= object.min_pos_vert[0] &&
-		object.position[0] + object.min_pos_vert[0] >= rover.position[0][0];
 
-	bool collision_Y_min = rover.position[0][1] + rover.min_pos[1] >= object.min_pos_vert[1] &&
-		object.position[1] + object.min_pos_vert[1] >= rover.position[0][1];
-	if (collision_X_max && collision_X_min ) {
-		//printf("COLLISION!!!!\n");
+	if (rover.position[0][0] + rover.max_pos[0] >= object.position[0] &&
+		object.position[0] + object.max_pos_vert[0] >= rover.position[0][0]) {
+		//printf("coll 1\n");
+		if (rover.position[0][1] + rover.max_pos[1] >= object.position[1] &&
+			object.position[1] + object.max_pos_vert[1] >= rover.position[0][1]) {
+			//printf("coll 2\n");
+		}
 	}
-	// collision only if on both axes
+
+	if (rover.position[0][0] + rover.min_pos[0] >= object.position[0] &&
+		object.position[0] + object.min_pos_vert[0] >= rover.position[0][0]) {
+		//printf("coll 3\n");
+		if (rover.position[0][1] + rover.min_pos[1] >= object.position[1] &&
+			object.position[1] + object.min_pos_vert[1] >= rover.position[0][1]) {
+			//printf("coll 4\n");
+		}
+	}
 	return true;
+}
+
+unsigned char* loadImageIntoArray(const char* strFileName, int width, int height) {
+	FILE* image_file;
+	image_file = fopen(strFileName, "rb");
+
+	if (image_file == NULL) {
+		printf("Image file not found!\n");
+	}
+	unsigned char* out = (unsigned char*) malloc(3*width*height);
+	fread(out, 3*width*height, 1, image_file);
+	fclose(image_file);
+
+	return out;
 }
 
 void animate(int value) {
@@ -175,10 +183,6 @@ void animate(int value) {
 	rover.position[0][0] += rover.direction[0] * rover.speed * DELTA_T;
 
 	rover.position[0][2] += rover.direction[2] * rover.speed * DELTA_T;
-
-	for (int i = 0; i < static_objects.size(); i++) {
-		checkForCollisionWithRover(rover, static_objects[i]);
-	}
 
 	glutPostRedisplay();
 	glutTimerFunc(1000 * DELTA_T, animate, 0);
@@ -213,7 +217,7 @@ void rolling_rocks_animate(int value) {
 void timer(int value)
 {
 	std::ostringstream oss;
-	oss << CAPTION << ": " << FrameCount << " FPS @ (" << WinX << "x" << WinY << ")";
+	oss << "MARS ROVER" << ": " << FrameCount << " FPS @ (" << WinX << "x" << WinY << ")";
 	std::string s = oss.str();
 	glutSetWindow(WindowHandle);
 	glutSetWindowTitle(s.c_str());
@@ -474,15 +478,39 @@ void renderScene(void) {
 		glUniform4fv(sPos_uniformId[i], 1, res);
 		multMatrixPoint(VIEW, rover.direction, res);
 		glUniform4fv(sDir_uniformId[i], 1, res);
-		glUniform1f(sCut_uniformId[i], 0.0f);
+		glUniform1f(sCut_uniformId[i], 0.95f);
 	}
 	multMatrixPoint(VIEW, dirLight, res);
 	glUniform4fv(dPos_uniformId, 1, res);
+	
+	const char* strFileName = "mars.png";
+	int image_width = 1133;
+	int image_height = 566;
+	unsigned char* tex_mars_terrain = loadImageIntoArray(strFileName, image_width, image_height);
+
+	GLuint terrain_texture;
+	glGenTextures(1, &terrain_texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, terrain_texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_mars_terrain);
+
+	glUniform1i(tex_loc, 1);
+
+	//Create the other two texture objects
 
 	//multMatrixPoint(VIEW, lightPos, res);   //lightPos definido em World Coord so is converted to eye space
 	
 
-	
+	for (int i = 0; i < static_objects.size(); i++) {
+		checkForCollisionWithRover(rover, static_objects[i]);
+	}
 
 	// camera follows rover
 	float dist = 5;
@@ -747,10 +775,10 @@ GLuint setupShaders() {
 		;
 	}
 	dPos_uniformId = glGetUniformLocation(shader.getProgramIndex(), "dirLight.direction");
-	printf("pos: %d  ", dPos_uniformId);
+	//printf("pos: %d  ", dPos_uniformId);
 	tex_loc = glGetUniformLocation(shader.getProgramIndex(), "texmap");
-	tex_loc1 = glGetUniformLocation(shader.getProgramIndex(), "texmap1");
-	tex_loc2 = glGetUniformLocation(shader.getProgramIndex(), "texmap2");
+	//tex_loc1 = glGetUniformLocation(shader.getProgramIndex(), "texmap1");
+	//tex_loc2 = glGetUniformLocation(shader.getProgramIndex(), "texmap2");
 
 	printf("InfoLog for Per Fragment Phong Lightning Shader\n%s\n\n", shader.getAllInfoLogs().c_str());
 
@@ -864,13 +892,13 @@ void init()
 		rover.body.push_back(amesh);
 	}
 	// get max and min position of rover
-	rover.max_pos[0] = rover.body[0].max_pos_vert[0] + rover.body[1].max_pos_vert[0]; 
-	rover.max_pos[1] = rover.body[0].max_pos_vert[1] + rover.body[1].max_pos_vert[1];
-	rover.max_pos[2] = rover.body[0].max_pos_vert[2] + rover.body[1].max_pos_vert[2];
+	rover.max_pos[0] = rover.body[0].max_pos_vert[0]; 
+	rover.max_pos[1] = rover.body[0].max_pos_vert[1];
+	rover.max_pos[2] = rover.body[0].max_pos_vert[2];
 
-	rover.min_pos[0] = rover.body[0].min_pos_vert[0] + rover.body[1].min_pos_vert[0];
-	rover.min_pos[1] = rover.body[0].min_pos_vert[1] + rover.body[1].min_pos_vert[1];
-	rover.min_pos[2] = rover.body[0].min_pos_vert[2] + rover.body[1].min_pos_vert[2];
+	rover.min_pos[0] = rover.body[0].min_pos_vert[0];
+	rover.min_pos[1] = rover.body[0].min_pos_vert[1];
+	rover.min_pos[2] = rover.body[0].min_pos_vert[2];
 
 	for (int i = 0; i < 40; i++) {
 		amesh = createSphere(0.2, 3);
@@ -893,14 +921,7 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHT2);
-	glEnable(GL_LIGHT3);
-	glEnable(GL_LIGHT4);
-	glEnable(GL_LIGHT5);
-	glEnable(GL_LIGHT6);
-	glEnable(GL_LIGHT7);
+	
 	glEnable(GL_MULTISAMPLE);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -934,7 +955,7 @@ int main(int argc, char** argv) {
 
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(WinX, WinY);
-	WindowHandle = glutCreateWindow(CAPTION);
+	WindowHandle = glutCreateWindow("MARS ROVER");
 
 
 	//  Callback Registration

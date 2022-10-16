@@ -1,46 +1,50 @@
 ﻿  lightDemo.cpp
 C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(75,11): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(78,17): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(133,66): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(133,66): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(133,114): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(133,114): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(134,22): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(134,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(134,70): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(134,70): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(194,27): warning C4305: '+=': truncation from 'double' to 'float'
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(203,58): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(204,58): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(274,16): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(277,17): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(279,33): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(284,16): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(287,17): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(289,32): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(324,36): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(454,41): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(528,104): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(528,71): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(528,54): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(528,21): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(876,30): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(885,57): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(886,57): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(974,57): warning C4244: 'argument': conversion from 'double' to '_Ty', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(126,23): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(126,23): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(126,50): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(126,50): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(126,77): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(126,77): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(127,22): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(127,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(127,49): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(127,49): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(127,76): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(127,76): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(198,27): warning C4305: '+=': truncation from 'double' to 'float'
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(207,58): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(208,58): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(278,16): warning C4305: '=': truncation from 'double' to 'float'
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(281,17): warning C4305: '=': truncation from 'double' to 'float'
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(283,33): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(288,16): warning C4305: '=': truncation from 'double' to 'float'
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(291,17): warning C4305: '=': truncation from 'double' to 'float'
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(293,32): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(328,36): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(458,41): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(556,104): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(556,71): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(556,54): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(556,21): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(904,30): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(913,57): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(914,57): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(995,57): warning C4244: 'argument': conversion from 'double' to '_Ty', possible loss of data
           with
           [
               _Ty=float
           ]
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(975,57): warning C4244: 'argument': conversion from 'double' to '_Ty', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(996,57): warning C4244: 'argument': conversion from 'double' to '_Ty', possible loss of data
           with
           [
               _Ty=float
           ]
   Generating code
-  1 of 704 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
+  3 of 705 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    4 functions had inline decision re-evaluated but remain unchanged
+    3 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   MyAPPAVT.vcxproj -> C:\Users\susannewulz\source\repos\MyAPPAVT\x64\Release\MyAPPAVT.exe
   0 File(s) copied

@@ -86,16 +86,16 @@
     <None Include="shaders\text.vert">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="..\..\..\..\Desktop\AVT\AVT_Template\SHADERS\pointlight_phong.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\..\..\..\Desktop\AVT\AVT_Template\SHADERS\pointlight_phong.vert">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="shaders\pointlight_gouraud.frag">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="shaders\pointlight_gouraud.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\pointlight_phong.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\pointlight_phong.frag">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
