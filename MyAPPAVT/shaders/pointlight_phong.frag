@@ -26,16 +26,19 @@ in Data {
 
 struct DirectionalLight {
     vec4 direction;
+	Materials materials;
 }; 
 
 struct PointLight {    
     vec4 position;
+	Materials materials;
 };
 
 struct SpotLight {    
     vec4 position;
 	vec3 direction;
 	float cutoff;
+	Materials materials;
 };
 
 uniform sampler2D texmap0;
@@ -58,14 +61,15 @@ vec4 CalcDirLight(DirectionalLight dirLight, vec3 n, vec3 e)
 
 		vec3 h = normalize(l + e);
 		float intSpec = max(dot(h,n), 0.0);
-		spec = mat.specular * pow(intSpec, mat.shininess);
+		spec = dirLight.materials.specular * pow(intSpec, dirLight.materials.shininess);
 	}
+	//vec3 diffuse = intensity * texture(texmap0, texCoord).rgb;
 	
 	//return max(intensity * mat.diffuse + spec, mat.ambient.a);
-	return max(intensity * mat.diffuse + spec, mat.ambient);
+	return max(intensity * dirLight.materials.diffuse + spec, dirLight.materials.ambient);
 }  
 
-vec4 CalcPointLight(vec3 l, vec3 n, vec3 e)
+vec4 CalcPointLight(vec3 l, vec3 n, vec3 e, Materials materials)
 {
 	vec4 spec = vec4(0.0);
 
@@ -76,15 +80,15 @@ vec4 CalcPointLight(vec3 l, vec3 n, vec3 e)
 
 		vec3 h = normalize(l + e);
 		float intSpec = max(dot(h,n), 0.0);
-		spec = mat.specular * pow(intSpec, mat.shininess);
+		spec = materials.specular * pow(intSpec, materials.shininess);
 	}
 
 	
 	//return max(intensity * mat.diffuse + spec, mat.ambient.a);
-	return max(intensity * mat.diffuse + spec, mat.ambient);
+	return max(intensity * materials.diffuse + spec, materials.ambient);
 } 
 
-vec4 calcSpotLight(vec3 l, vec3 s, float cutoff, vec3 n, vec3 e) {
+vec4 calcSpotLight(vec3 l, vec3 s, float cutoff, vec3 n, vec3 e, Materials materials) {
 	
 	vec4 spec = vec4(0.0);
 
@@ -96,13 +100,13 @@ vec4 calcSpotLight(vec3 l, vec3 s, float cutoff, vec3 n, vec3 e) {
         if (intensity > 0.0) {
             vec3 h = normalize(l + e);
 			float intSpec = max(dot(h,n), 0.0);
-			spec = mat.specular * pow(intSpec, mat.shininess);
+			spec = materials.specular * pow(intSpec, materials.shininess);
         }
     }
 
 	
 	//return max(intensity * mat.diffuse + spec, mat.ambient.a);
-	return max(intensity * mat.diffuse + spec, mat.ambient);
+	return max(intensity * materials.diffuse + spec, materials.ambient);
 }
 
 void main() {
@@ -119,12 +123,12 @@ void main() {
 		vec3 l = normalize(vec3(spotLights[i].position - pos));
 		vec3 s = normalize(-spotLights[i].direction); 
 		float cutoff = spotLights[i].cutoff;
-		colorOut += calcSpotLight(l, s, cutoff, n, e);
+		colorOut += calcSpotLight(l, s, cutoff, n, e, spotLights[i].materials);
 	}
 
 	for (int i = 0; i < NUMBER_POINT_LIGHTS; i++) {
 		vec3 pl = vec3(pointLights[i].position - pos);
 		vec3 pl2 = normalize(pl);
-		colorOut += CalcPointLight(pl2, n, e)/6;
+		colorOut += CalcPointLight(pl2, n, e, pointLights[i].materials)/6;
 	}
 }

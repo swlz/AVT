@@ -123,12 +123,13 @@ float pointLights[NUMBER_POINT_LIGHTS][4]= { {-0.0f, 20.0f, -0.0f, 1.0f},
 					{1.5f, 20.0f, 1.5f, 1.0f}
 };
 float spotLights[NUMBER_SPOT_LIGHTS][4] = { 
-	{rover.position[0][0]+0.03, rover.position[0][1]+0.02, rover.position[0][2]+0.05, 1.0f},
-{rover.position[0][0]-0.03, rover.position[0][1]+0.02, rover.position[0][2]+0.05, 1.0f}
+	{rover.position[0][0]+0.3, rover.position[0][1]+0.2, rover.position[0][2]+0.9, 1.0f},
+{rover.position[0][0]-0.3, rover.position[0][1]+0.2, rover.position[0][2]+0.9, 1.0f}
 };
 
 bool spot_enabled = true;
 bool point_enabled = true;
+bool direct_enabled = true;
 
 int prev_time = 0;
 
@@ -165,8 +166,9 @@ unsigned char* loadImageIntoArray(const char* strFileName, int width, int height
 	if (image_file == NULL) {
 		printf("Image file not found!\n");
 	}
-	unsigned char* out = (unsigned char*) malloc(3*width*height);
-	fread(out, 3*width*height, 1, image_file);
+	int channels = 3;
+	unsigned char* out = (unsigned char*) malloc(channels*width*height);
+	fread(out, channels*width*height, 1, image_file);
 	fclose(image_file);
 
 	return out;
@@ -358,6 +360,26 @@ void drawTerrain() {
 	glUniform4fv(loc, 1, terrain[0].mat.specular);
 	loc = glGetUniformLocation(shader.getProgramIndex(), "mat.shininess");
 	glUniform1f(loc, terrain[0].mat.shininess);
+	const char* strFileName = "mars.png";
+	int image_width = 1133;
+	int image_height = 566;
+	unsigned char* tex_mars_terrain = loadImageIntoArray(strFileName, image_width, image_height);
+
+	GLuint terrain_texture;
+	glGenTextures(1, &terrain_texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, terrain_texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGB, GL_UNSIGNED_BYTE, tex_mars_terrain);
+
+	glUniform1i(tex_loc, 1);
+
 	pushMatrix(MODEL);
 	rotate(MODEL, -90, 1, 0, 0);
 
@@ -466,51 +488,68 @@ void renderScene(void) {
 	glutTimerFunc(0, rolling_rocks_animate, 0);
 
 	//send the light position in eye coordinates
-	//glUniform4fv(lPos_uniformId, 1, lightPos); //efeito capacete do mineiro, ou seja lighPos foi definido em eye coord 
 
 	float res[4];
+	GLfloat pointLights_ambient[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	GLfloat pointLights_diffuse[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	GLfloat pointLights_specular[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	float counter = 0;
 	for (int i = 0; i < NUMBER_POINT_LIGHTS; i++) {
 		multMatrixPoint(VIEW, pointLights[i], res);
 		glUniform4fv(lPos_uniformId[i], 1, res);
+
+		glUniform4f(glGetUniformLocation(shader.getProgramIndex(), (const GLchar*)("pointLights[" + to_string(i) + "].materials.ambient").c_str()), (pointLights_ambient[0] + counter) * 0.1f, (pointLights_ambient[1] + counter) * 0.1f, (pointLights_ambient[2] + counter) * 0.1f, pointLights_ambient[3]);
+		glUniform4f(glGetUniformLocation(shader.getProgramIndex(), (const GLchar*)("pointLights[" + to_string(i) + "].materials.diffuse").c_str()), (pointLights_diffuse[0] + counter), (pointLights_diffuse[1] + counter), (pointLights_diffuse[2] + counter), pointLights_diffuse[3]);
+		glUniform4f(glGetUniformLocation(shader.getProgramIndex(), (const GLchar*)("pointLights[" + to_string(i) + "].materials.specular").c_str()), (pointLights_specular[0] + counter), (pointLights_specular[1] + counter), (pointLights_specular[2] + counter), pointLights_specular[3]);
+		glUniform1f(glGetUniformLocation(shader.getProgramIndex(), (const GLchar*)("pointLights[" + to_string(i) + "].materials.shininess").c_str()), 100.0f);
+		counter += 0.1f;
+		glLightfv(GL_LIGHT1 + i, GL_AMBIENT, pointLights_ambient);
+		glLightfv(GL_LIGHT1 + i, GL_DIFFUSE, pointLights_diffuse);
+		glLightfv(GL_LIGHT1 + i, GL_SPECULAR, pointLights_specular);
+		glLightfv(GL_LIGHT1 + i, GL_POSITION, pointLights[i]);
 	}
+
+	GLfloat spotLights_ambient[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	GLfloat spotLights_diffuse[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat spotLights_specular[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	for (int i = 0; i < NUMBER_SPOT_LIGHTS; i++) {
 		multMatrixPoint(VIEW, spotLights[i], res);
 		glUniform4fv(sPos_uniformId[i], 1, res);
 		multMatrixPoint(VIEW, rover.direction, res);
 		glUniform4fv(sDir_uniformId[i], 1, res);
-		glUniform1f(sCut_uniformId[i], 0.95f);
+		glUniform1f(sCut_uniformId[i], 0.2f);
+
+		glUniform4f(glGetUniformLocation(shader.getProgramIndex(), (const GLchar*)("spotLights[" + to_string(i) + "].materials.ambient").c_str()), spotLights_ambient[0], spotLights_ambient[1], spotLights_ambient[2], spotLights_ambient[3]);
+		glUniform4f(glGetUniformLocation(shader.getProgramIndex(), (const GLchar*)("spotLights[" + to_string(i) + "].materials.diffuse").c_str()), spotLights_diffuse[0], spotLights_diffuse[1], spotLights_diffuse[2], spotLights_diffuse[3]);
+		glUniform4f(glGetUniformLocation(shader.getProgramIndex(), (const GLchar*)("spotLights[" + to_string(i) + "].materials.specular").c_str()), spotLights_specular[0], spotLights_specular[1], spotLights_specular[2], spotLights_specular[3]);
+		glUniform1f(glGetUniformLocation(shader.getProgramIndex(), (const GLchar*)("spotLights[" + to_string(i) + "].materials.shininess").c_str()), 100.0f);
+
+		glLightfv(GL_LIGHT2 + i, GL_AMBIENT, spotLights_ambient);
+		glLightfv(GL_LIGHT2 + i, GL_DIFFUSE, spotLights_diffuse);
+		glLightfv(GL_LIGHT2 + i, GL_SPECULAR, spotLights_specular);
+		glLightfv(GL_LIGHT2 + i, GL_POSITION, spotLights[i]);
+	
 	}
 	multMatrixPoint(VIEW, dirLight, res);
 	glUniform4fv(dPos_uniformId, 1, res);
-	
-	const char* strFileName = "mars.png";
-	int image_width = 1133;
-	int image_height = 566;
-	unsigned char* tex_mars_terrain = loadImageIntoArray(strFileName, image_width, image_height);
+	GLfloat dirLight_ambient[4] = {0.3f, 0.24f, 0.14f, 1.0f};
+	GLfloat dirLight_diffuse[4] = {0.7f, 0.42f, 0.26f, 1.0f};
+	GLfloat dirLight_specular[4]= {0.5f, 0.5f, 0.5f, 1.0f};
+	glUniform4f(glGetUniformLocation(shader.getProgramIndex(), "dirLight.materials.ambient"), dirLight_ambient[0], dirLight_ambient[1], dirLight_ambient[2], dirLight_ambient[3]);
+	glUniform4f(glGetUniformLocation(shader.getProgramIndex(), "dirLight.materials.diffuse"), dirLight_diffuse[0], dirLight_diffuse[1], dirLight_diffuse[2], dirLight_diffuse[3]);
+	glUniform4f(glGetUniformLocation(shader.getProgramIndex(), "dirLight.materials.specular"), dirLight_specular[0], dirLight_specular[1], dirLight_specular[2], dirLight_specular[3]);
+	glUniform1f(glGetUniformLocation(shader.getProgramIndex(), "dirLight.materials.shininess"), 100.0f);
 
-	GLuint terrain_texture;
-	glGenTextures(1, &terrain_texture);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, terrain_texture);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, dirLight_ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, dirLight_diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, dirLight_specular);
+	glLightfv(GL_LIGHT0, GL_POSITION, dirLight);	
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_mars_terrain);
-
-	glUniform1i(tex_loc, 1);
-
-	//Create the other two texture objects
-
-	//multMatrixPoint(VIEW, lightPos, res);   //lightPos definido em World Coord so is converted to eye space
 	
 
-	for (int i = 0; i < static_objects.size(); i++) {
-		checkForCollisionWithRover(rover, static_objects[i]);
-	}
+	//for (int i = 0; i < static_objects.size(); i++) {
+	//	checkForCollisionWithRover(rover, static_objects[i]);
+	//}
 
 	// camera follows rover
 	float dist = 5;
@@ -604,42 +643,48 @@ void processKeys(unsigned char key, int xx, int yy)
 	case 'c':
 		//printf("Camera Spherical Coordinates (%f, %f, %f)\n", alpha, beta, r);
 		if (point_enabled == false) {
-			glEnable(GL_LIGHT3);
-			glEnable(GL_LIGHT4);
-			glEnable(GL_LIGHT5);
-			glEnable(GL_LIGHT6);
-			glEnable(GL_LIGHT7);
-			glEnable(GL_LIGHT0);
+			for (int i = 0; i < NUMBER_POINT_LIGHTS; i++) {
+				glEnable(GL_LIGHT1 + i);
+			}
+			
 			point_enabled = true;
 		}
 		
 		if (point_enabled == true) {
-			glDisable(GL_LIGHT3);
-			glDisable(GL_LIGHT4);
-			glDisable(GL_LIGHT5);
-			glDisable(GL_LIGHT6);
-			glDisable(GL_LIGHT7);
-			glDisable(GL_LIGHT0);
+			for (int i = 0; i < NUMBER_POINT_LIGHTS; i++) {
+				glDisable(GL_LIGHT1 + i);
+			}
 			point_enabled = false;
 		}
-		
-
 		break;
 	case 'h':
 		if (spot_enabled == false) {
-			glEnable(GL_LIGHT1);
-			glEnable(GL_LIGHT2);
+			for (int i = 0; i < NUMBER_SPOT_LIGHTS; i++) {
+				glEnable(GL_LIGHT2 + i);
+			}
 			spot_enabled = true;
 		}
 
 		if (spot_enabled == true) {
-			glDisable(GL_LIGHT1);
-			glDisable(GL_LIGHT2);
+			for (int i = 0; i < NUMBER_SPOT_LIGHTS; i++) {
+				glDisable(GL_LIGHT2 + i);
+			}
 			spot_enabled = false;
 		}
 		break;
 	case 'm': glEnable(GL_MULTISAMPLE); break;
 	case 'n': glDisable(GL_MULTISAMPLE); break;
+	case 'N': 
+		if (direct_enabled == false) {
+			glEnable(GL_LIGHT0);
+
+			direct_enabled = true;
+		}
+		if (direct_enabled == true) {
+			glDisable(GL_LIGHT0);
+			direct_enabled = false;
+		}
+		break;
 	}
 }
 
@@ -772,7 +817,6 @@ GLuint setupShaders() {
 		sPos_uniformId[i] = glGetUniformLocation(shader.getProgramIndex(), (const GLchar*)("spotLights[" + to_string(i) + "].position").c_str());
 		sDir_uniformId[i] = glGetUniformLocation(shader.getProgramIndex(), (const GLchar*)("spotLights[" + to_string(i) + "].direction").c_str());
 		sCut_uniformId[i] = glGetUniformLocation(shader.getProgramIndex(), (const GLchar*)("spotLights[" + to_string(i) + "].cutoff").c_str());
-		;
 	}
 	dPos_uniformId = glGetUniformLocation(shader.getProgramIndex(), "dirLight.direction");
 	//printf("pos: %d  ", dPos_uniformId);
@@ -921,6 +965,14 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+
+	for (int i = 0; i < NUMBER_POINT_LIGHTS; i++) {
+		glEnable(GL_LIGHT1 + i);
+	}
+	for (int i = 0; i < NUMBER_SPOT_LIGHTS; i++) {
+		glEnable(GL_LIGHT2 + i);
+	}
 	
 	glEnable(GL_MULTISAMPLE);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
