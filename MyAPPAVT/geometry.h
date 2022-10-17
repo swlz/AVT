@@ -19,7 +19,7 @@ struct MyMesh {
 	float transform[16];
 	float max_pos_vert[3];
 	float min_pos_vert[3];
-	float position[3];
+	float position[4];
 	GLuint numIndexes;
 	unsigned int type;
 	struct Material mat;

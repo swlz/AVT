@@ -95,7 +95,7 @@ GLint sDir_uniformId[NUMBER_SPOT_LIGHTS];
 GLint sCut_uniformId[NUMBER_SPOT_LIGHTS];
 GLint dPos_uniformId;
 GLint lnum_point_light, lnum_spot_light;
-GLint tex_loc, tex_loc1, tex_loc2;
+GLuint tex_loc, tex_loc1, tex_loc2;
 
 // Cameras
 Camera cameras[3];
@@ -363,21 +363,13 @@ void drawTerrain() {
 	const char* strFileName = "mars.png";
 	int image_width = 1133;
 	int image_height = 566;
-	unsigned char* tex_mars_terrain = loadImageIntoArray(strFileName, image_width, image_height);
-
+	unsigned int* tex_mars_terrain;
 	GLuint terrain_texture;
-	glGenTextures(1, &terrain_texture);
+
+	Texture2D_Loader(&tex_loc, strFileName, 0);
+
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, terrain_texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGB, GL_UNSIGNED_BYTE, tex_mars_terrain);
-
+	glBindTexture(GL_TEXTURE_2D, tex_loc);
 	glUniform1i(tex_loc, 1);
 
 	pushMatrix(MODEL);
@@ -405,6 +397,7 @@ void drawStaticObject() {
 		static_objects[i].position[0] = static_x_pos[i];
 		static_objects[i].position[1] = 0.0f;
 		static_objects[i].position[2] = static_y_pos[i];
+		static_objects[i].position[3] = 1.0f;
 		// send the material
 		loc = glGetUniformLocation(shader.getProgramIndex(), "mat.ambient");
 		glUniform4fv(loc, 1, static_objects[i].mat.ambient);
@@ -561,7 +554,6 @@ void renderScene(void) {
 	cameras[2].camTarget[1] = rover.position[0][1];
 	cameras[2].camTarget[2] = rover.position[0][2];
 
-	
 
 	pushMatrix(MODEL);
 	drawTerrain();
@@ -623,11 +615,9 @@ void processKeys(unsigned char key, int xx, int yy)
 		break;
 	case 'p':
 		rover.angle -= 0.1f; 
-		//printf("angle: %f\n", rover.angle);
 		break;
 	case 'o':
 		rover.angle += 0.1f;
-		//printf("angle: %f\n", rover.angle);
 		break;
 	case 'q':
 		rover.speed += 0.0001f;
@@ -677,7 +667,6 @@ void processKeys(unsigned char key, int xx, int yy)
 	case 'N': 
 		if (direct_enabled == false) {
 			glEnable(GL_LIGHT0);
-
 			direct_enabled = true;
 		}
 		if (direct_enabled == true) {
@@ -797,7 +786,7 @@ GLuint setupShaders() {
 	glBindFragDataLocation(shader.getProgramIndex(), 0, "colorOut");
 	glBindAttribLocation(shader.getProgramIndex(), VERTEX_COORD_ATTRIB, "position");
 	glBindAttribLocation(shader.getProgramIndex(), NORMAL_ATTRIB, "normal");
-	//glBindAttribLocation(shader.getProgramIndex(), TEXTURE_COORD_ATTRIB, "texCoord");
+	glBindAttribLocation(shader.getProgramIndex(), TEXTURE_COORD_ATTRIB, "texCoord");
 
 	glLinkProgram(shader.getProgramIndex());
 	printf("InfoLog for Model Rendering Shader\n%s\n\n", shaderText.getAllInfoLogs().c_str());
@@ -819,8 +808,8 @@ GLuint setupShaders() {
 		sCut_uniformId[i] = glGetUniformLocation(shader.getProgramIndex(), (const GLchar*)("spotLights[" + to_string(i) + "].cutoff").c_str());
 	}
 	dPos_uniformId = glGetUniformLocation(shader.getProgramIndex(), "dirLight.direction");
-	//printf("pos: %d  ", dPos_uniformId);
-	tex_loc = glGetUniformLocation(shader.getProgramIndex(), "texmap");
+	
+	tex_loc = glGetUniformLocation(shader.getProgramIndex(), "texmap0");
 	//tex_loc1 = glGetUniformLocation(shader.getProgramIndex(), "texmap1");
 	//tex_loc2 = glGetUniformLocation(shader.getProgramIndex(), "texmap2");
 

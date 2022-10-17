@@ -1,4 +1,5 @@
-﻿  lightDemo.cpp
+﻿  Rocks.cpp
+  lightDemo.cpp
 C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(75,11): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(78,17): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(126,23): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
@@ -23,26 +24,28 @@ C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(290,16): warni
 C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(293,17): warning C4305: '=': truncation from 'double' to 'float'
 C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(295,32): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(330,36): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(480,41): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(595,104): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(595,71): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(595,54): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(595,21): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(948,30): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(957,57): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(958,57): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(1047,57): warning C4244: 'argument': conversion from 'double' to '_Ty', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(367,9): warning C4101: 'terrain_texture': unreferenced local variable
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(366,16): warning C4101: 'tex_mars_terrain': unreferenced local variable
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(473,41): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(587,104): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(587,71): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(587,54): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(587,21): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(937,30): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(946,57): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(947,57): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(1036,57): warning C4244: 'argument': conversion from 'double' to '_Ty', possible loss of data
           with
           [
               _Ty=float
           ]
-C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(1048,57): warning C4244: 'argument': conversion from 'double' to '_Ty', possible loss of data
+C:\Users\susannewulz\source\repos\MyAPPAVT\MyAPPAVT\lightDemo.cpp(1037,57): warning C4244: 'argument': conversion from 'double' to '_Ty', possible loss of data
           with
           [
               _Ty=float
           ]
   Generating code
-  1 of 703 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
+  2 of 703 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     4 functions had inline decision re-evaluated but remain unchanged
   Finished generating code

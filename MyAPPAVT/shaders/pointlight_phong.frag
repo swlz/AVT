@@ -64,8 +64,12 @@ vec4 CalcDirLight(DirectionalLight dirLight, vec3 n, vec3 e)
 		spec = dirLight.materials.specular * pow(intSpec, dirLight.materials.shininess);
 	}
 	//vec3 diffuse = intensity * texture(texmap0, texCoord).rgb;
+
+	//if(dirLight.materials.ambient.a == 0.0) 
+	//	discard;
 	
-	//return max(intensity * mat.diffuse + spec, mat.ambient.a);
+	//return max(intensity * dirLight.materials.diffuse + spec,dirLight.materials.ambient.a);
+	
 	return max(intensity * dirLight.materials.diffuse + spec, dirLight.materials.ambient);
 }  
 
@@ -83,8 +87,10 @@ vec4 CalcPointLight(vec3 l, vec3 n, vec3 e, Materials materials)
 		spec = materials.specular * pow(intSpec, materials.shininess);
 	}
 
+	//if(materials.ambient.a == 0.0) discard;
+
 	
-	//return max(intensity * mat.diffuse + spec, mat.ambient.a);
+	//return max(intensity * materials.diffuse + spec, materials.ambient.a);
 	return max(intensity * materials.diffuse + spec, materials.ambient);
 } 
 
@@ -104,8 +110,9 @@ vec4 calcSpotLight(vec3 l, vec3 s, float cutoff, vec3 n, vec3 e, Materials mater
         }
     }
 
+	//if(materials.ambient.a == 0.0) discard;
 	
-	//return max(intensity * mat.diffuse + spec, mat.ambient.a);
+	//return max(intensity * materials.diffuse + spec, materials.ambient.a);
 	return max(intensity * materials.diffuse + spec, materials.ambient);
 }
 
@@ -131,4 +138,5 @@ void main() {
 		vec3 pl2 = normalize(pl);
 		colorOut += CalcPointLight(pl2, n, e, pointLights[i].materials)/6;
 	}
+
 }
